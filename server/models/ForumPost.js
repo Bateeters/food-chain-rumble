@@ -63,6 +63,9 @@ const forumPostSchema = new mongoose.Schema({
         default: false
         // Soft delete - post hidden but not removed from database
     },
+    deletedAt: {
+        type: Date
+    },
 
     // Statistics
     stats: {
@@ -102,7 +105,19 @@ const forumPostSchema = new mongoose.Schema({
             type: mongoose.Schema.Types.ObjectId,
             ref: 'User'
         },
-    }]
+    }],
+    
+    // Flagged for moderation
+    isFlagged: {
+        type: Boolean,
+        default: false
+        // Users can flag inappropriate content
+    },
+    flagCount: {
+        type: Number,
+        default: 0
+        // How many users flagged this content
+    }
 }, {
     timestamps: true
 });
