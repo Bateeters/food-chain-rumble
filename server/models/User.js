@@ -40,7 +40,48 @@ const userSchema = new mongoose.Schema({
     isActive: {
         type: Boolean,
         default: true
-    }
+    },
+    isBanned: {
+        type: Boolean,
+        default: false
+    },
+    banReason: {
+        type: String,
+        maxlength: [500, 'Ban reason cannot exceed 500 characters']
+    },
+    bannedAt: {
+        type: Date
+    },
+    bannedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    },
+    banExpiresAt: {
+        type: Date
+        // null = permanent ban
+        // Date = temporary ban until this date
+    },
+    banHistory: [{
+        reason: {
+            type: String,
+            required: true
+        },
+        bannedAt: {
+            type: Date,
+            default: Date.now
+        },
+        bannedBy: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User'
+        },
+        duration: {
+            type: String
+        },
+        unbannedBy: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User'
+        }
+    }]
 }, {
     timestamps: true // automatically adds createdAt and updatedAt
 });

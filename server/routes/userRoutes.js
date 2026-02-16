@@ -8,7 +8,10 @@ const {
     updateUser,
     deleteUser,
     getUserStats,
-    updatePassword
+    updatePassword,
+    banUser,
+    unbanUser,
+    getBanInfo
 } = require('../controllers/userController');
 
 // Import middleware
@@ -43,5 +46,20 @@ router.get('/:id/stats', getUserStats);
 // @desc    Change password (own account only)
 // @access  Private
 router.post('/:id/password', protect, updatePassword);
+
+// @route   POST /api/users/:id/ban
+// @desc    Ban a user account (admin/moderator only)
+// @access  Private/Admin
+router.post('/:id/ban', protect, isAdmin, banUser);
+
+// @route   POST /api/users/:id/unban
+// @desc    Unban a user account (admin/moderator only)
+// @access  Private/Admin
+router.post('/:id/unban', protect, isAdmin, unbanUser);
+
+// @route   GET /api/users/:id/ban-info
+// @desc    Get ban info for a user (public - so users can see why they're banned)
+// @access  Public
+router.get('/:id/ban-info', getBanInfo);
 
 module.exports = router;
