@@ -34,6 +34,14 @@ const matchSchema = new mongoose.Schema({
             // 2v2: team 1 (2 players) vs team 2 (2 players)
             // etc...
         },
+        talents: {
+            greater: {
+                type: mongoose.Schema.Types.ObjectId
+            },
+            lesser: [{
+                type: mongoose.Schema.Types.ObjectId
+            }]
+        },
         stats: {
             kills: {
                 type: Number,

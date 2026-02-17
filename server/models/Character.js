@@ -80,6 +80,30 @@ const characterSchema = new mongoose.Schema({
         totalWins: {
             type: Number,
             default: 0
+        },
+        totalLosses: {
+            type: Number,
+            default: 0
+        },
+        totalKills: {
+            type: Number,
+            default: 0
+        },
+        totalDeaths: {
+            type: Number,
+            default: 0
+        },
+        totalAssists: {
+            type: Number,
+            default: 0
+        },
+        totalDamageDealt: {
+            type: Number,
+            default: 0
+        },
+        totalDamageTaken: {
+            type: Number,
+            default: 0
         }
     }
 },{
@@ -91,6 +115,38 @@ characterSchema.virtual('winRate').get(function() {
     const totalMatches = this.globalStats.totalWins + this.globalStats.totalLosses;
     if (totalMatches === 0) return 0;
     return parseFloat(((this.globalStats.totalWins / totalMatches) * 100).toFixed(2));
+});
+
+// Virtual: Average kills per match
+characterSchema.virtual('avgKills').get(function() {
+    if (this.globalStats.totalPicks === 0) return 0;
+    return parseFloat(
+        (this.globalStats.totalKills / this.globalStats.totalPicks).toFixed(2)
+    );
+});
+
+// Virtual: Average assists per match
+characterSchema.virtual('avgAssists').get(function() {
+  if (this.globalStats.totalPicks === 0) return 0;
+  return parseFloat(
+    (this.globalStats.totalAssists / this.globalStats.totalPicks).toFixed(2)
+  );
+});
+
+// Virtual: Average damage per match
+characterSchema.virtual('avgDamageDealt').get(function() {
+  if (this.globalStats.totalPicks === 0) return 0;
+  return Math.round(
+    this.globalStats.totalDamageDealt / this.globalStats.totalPicks
+  );
+});
+
+// Virtual: Average damage taken per match
+characterSchema.virtual('avgDamageTaken').get(function() {
+  if (this.globalStats.totalPicks === 0) return 0;
+  return Math.round(
+    this.globalStats.totalDamageTaken / this.globalStats.totalPicks
+  );
 });
 
 // Virtual field for difficulty display
