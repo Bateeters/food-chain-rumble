@@ -20,9 +20,25 @@ mongoose.connect(process.env.MONGO_URI)
     .then(() => console.log('MongoDB Connected Successfully'))
     .catch((err) => console.error('MongoDB Connection Error:', err));
 
-// Test Route
-app.get('./api/test', (req, res) => {
-    res.json({ message: 'Food Chain Rumble API is running!'});
+// Routes
+const routes = require('./routes/index');
+app.use('/api', routes);
+
+// 404 Handler
+app.use((req, res) => {
+    res.status(404).json({
+        error: 'Route not found',
+        path: req.originalUrl
+    });
+});
+
+// Global Error Handler
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(err.status || 500).json({
+        error: err.message || 'Something went wrong!',
+        ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+    });
 });
 
 // Start Server
