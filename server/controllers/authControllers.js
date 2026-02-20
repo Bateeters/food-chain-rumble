@@ -141,3 +141,24 @@ const login = async (req, res) => {
         });
     }
 };
+
+// @route   POST /api/auth/logout
+// @desc    Logout user (client-side token removal, server just confirms)
+// @access  Private
+const logout = async (req, res) => {
+    try {
+        // In a JWT-based system, logout is primarily handled client-side
+        // by removing the token. Server just acknowledges the request.
+
+        res.json({
+            message: 'Logged out successfully'
+        });
+    } catch (error) {
+        console.error('Logout error:', error):
+        res.status(500).json({
+            error: 'Error logging out',
+            details: error.message
+        });
+    }
+};
+
