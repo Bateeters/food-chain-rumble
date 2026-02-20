@@ -19,7 +19,7 @@ const protect = async (req, res, next) => {
             const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
             // Get user from token (exclude password)
-            req.user = await User.findById(decoded.id).select('.password');
+            req.user = await User.findById(decoded.id).select('-password');
 
             if(!req.user) {
                 return res.status(401).json({
@@ -83,3 +83,46 @@ const protect = async (req, res, next) => {
         });
     }
 };
+
+// Admin only access
+const isAdmin = (req, res, next) => {
+    // protect middleware must run first - it sets req.user
+    if (req.user && req.user.role === 'admin') {
+        next(); // User is admin, continue
+    } else {
+        res.status(403).json({
+            error: 'Access denied. Admin privileges required.'
+        });
+    }
+};
+
+// Check if user is moderator of a board
+const isModerator = (boardId) => {
+    return async (req, res, next) => {
+        const ForumBoard = require('../models/ForumBoard');
+
+        try {
+            const board = await ForumBoard.findById(boardId);
+
+            if (!board) {
+                return res.status(404).json({ error: 'Board not found' });
+            }
+
+            // Check if user is admin or moderator of this board
+            if (
+                req.user.role === 'admin' ||
+                board.moderators.includes(req.user.id)
+            ) {
+                next();
+            } else {
+                res.status(403).json({
+                    error: 'Access denied. Moderator privileges required.'
+                });
+            }
+        } catch (error) {
+            res.status(500).json({ error: error.message });
+        }
+    };
+};
+
+module.exports = {protect, isAdmin, isModerator };
