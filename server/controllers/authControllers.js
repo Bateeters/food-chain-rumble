@@ -162,3 +162,27 @@ const logout = async (req, res) => {
     }
 };
 
+// @route   GET /api/auth/me
+// @desc    Get current logged-in user
+// @access  Private
+const getCurrentUser = async (req, res) => {
+    try {
+        // req.user is set by protect middleware
+        const user = await User.findById(req.user.id);
+
+        if (!user) {
+            return res.status(404).json({
+                error: 'User not found'
+            });
+        }
+
+        res.json({ user });
+
+    } catch (error) {
+        res.status(500).json({
+            error: 'Error fetching user',
+            details: error.message
+        });
+    }
+};
+
