@@ -46,7 +46,7 @@ const register = async (req, res) => {
         const token = generateToken(user._id);
 
         // Send response (password excluded by toJSON method in User Model)
-        res.statsus(201).json({
+        res.status(201).json({
             message: 'User registered successfully',
             user,
             token
@@ -67,14 +67,14 @@ const login = async (req, res) => {
     try {
         const { email, password } = req.body;
 
-        // Vaidation
+        // Validation
         if (!email || !password) {
             return res.status(400).json({
                 error: 'Please provide email and password'
             });
         }
 
-        // Find user and explicity include password (it's excluded by default in toJSON)
+        // Find user and explicitly include password (it's excluded by default in toJSON)
         const user = await User.findOne({ email }).select('+password');
 
         if (!user) {
@@ -154,7 +154,7 @@ const logout = async (req, res) => {
             message: 'Logged out successfully'
         });
     } catch (error) {
-        console.error('Logout error:', error):
+        console.error('Logout error:', error);
         res.status(500).json({
             error: 'Error logging out',
             details: error.message
@@ -228,7 +228,7 @@ const refreshToken = async (req, res) => {
         const newToken = generateToken(user._id);
 
         res.json({
-            message: 'Token refreshsed',
+            message: 'Token refreshed',
             token: newToken
         });
 
