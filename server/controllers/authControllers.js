@@ -186,3 +186,71 @@ const getCurrentUser = async (req, res) => {
     }
 };
 
+// @route   POST /api/auth/refresh
+// @desc    Refresh access token
+// @access  Public (but requires valid token)
+const refreshToken = async (req, res) => {
+    try {
+        const { token } = req.body;
+
+        if (!token) {
+            return res.status(400).json({
+                error: 'Token is required'
+            });
+        }
+
+        // Verify the token
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+        // Get user
+        const user = await User.findById(decoded.id);
+
+        if (!user) {
+            return res.status(404).json({
+                error: 'User not found'
+            });
+        }
+
+        // Check if banned or inactive
+        if (user.isBanned) {
+            return res.status(403).json({
+                error: 'Account is banned'
+            });
+        }
+
+        if (!user.isActive) {
+            return res.status(403).json({
+                error: 'Account is inactive'
+            });
+        }
+
+        // Generate new token
+        const newToken = generateToken(user._id);
+
+        res.json({
+            message: 'Token refreshsed',
+            token: newToken
+        });
+
+    } catch (error) {
+        if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
+            return res.status(401).json({
+                error: 'Invalid or expired token'
+            });
+        }
+
+        console.error('Refresh token error:', error);
+        res.status(500).json({
+            error: 'Error refreshing token',
+            details: error.message
+        });
+    }
+};
+
+module.exports = {
+    register,
+    login,
+    logout,
+    getCurrentUser,
+    refreshToken
+};
