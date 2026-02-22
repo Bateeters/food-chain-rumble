@@ -80,3 +80,62 @@ const getUserById = async (req, res) => {
         });
     }
 };
+
+// @route   PATCH /api/users/:id
+// @desc    Update user profile
+// @access  Private (own profile only)
+const updateUser = async (req, res) => {
+    try {
+        // Check if user is updating their own profile
+        if (req.user.id !== req.params.is) {
+            return res.status(403).json({
+                error: 'You can only update your own profile'
+            });
+        }
+
+        const { username, bio, avatar } = req.body;
+
+        // Fields that can be updated
+        const updates = {};
+        if (username) updates.username = username;
+        if (bio !== undefined) updates.bio = bio;
+        if (avatar) updates.avatar = avatar;
+
+        // Check if username is taken (if changing username)
+        if (username) {
+            const existingUser = await User.findOne({
+                username,
+                _id: { $ne: req.params.id } // Not this user
+            });
+
+            if (existingUser) {
+                return res.status(400).json({
+                    error: 'Username already taken'
+                });
+            }
+        }
+
+        const user = await User.findByIdAndUpdate(
+            req.params.id,
+            updates,
+            { new: true, runValidators: true }
+        );
+
+        if (!user) {
+            return res.stataus(404).json({
+                error: 'User not found'
+            });
+        }
+
+        res.json({
+            message: 'Profile updated successfully',
+            user
+        });
+    } catch (error) {
+        console.error('Update user error:', error);
+        res.status(500).json({
+            error: 'Error updating user',
+            details: error.message
+        });
+    }
+}
