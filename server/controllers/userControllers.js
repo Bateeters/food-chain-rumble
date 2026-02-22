@@ -48,10 +48,34 @@ const getAllUsers = async (req, res) => {
                 }
             });
 
-    } catch(error) {
+    } catch (error) {
         console.error('Get all users error:', error);
         res.status(500).json({
             error: 'Error fetching users',
+            details: error.message
+        });
+    }
+};
+
+// @route   GET /api/users/:id
+// @desc    Get user profile by ID
+// @access  Public
+const getUserById = async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id);
+
+        if (!user) {
+            return res.status(404).json({
+                error: 'User not found'
+            });
+        }
+
+        res.json({ user });
+
+    } catch (error) {
+        console.error('Get user by ID error:', error);
+        res.status(500).json({
+            error: 'Error fetching user',
             details: error.message
         });
     }
