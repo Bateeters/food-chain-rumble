@@ -138,4 +138,37 @@ const updateUser = async (req, res) => {
             details: error.message
         });
     }
-}
+};
+
+// @route   DELETE /api/users/:id
+// @desc    Delete user account
+// @access  Private (own account or admin)
+const deleteUser = async (req, res) => {
+    try {
+        // Check if user is deleting their own account OR is an admin
+        if (req.user.id !== req.params.id && req.user.role !== 'admin') {
+            return res.status(403).json({
+                error: 'Not authorized to delete this account'
+            });
+        }
+
+        const user = await User.findByIdAndDelete(req.params.id);
+
+        if (!user) {
+            return res.status(404).json({
+                error: 'User not found'
+            });
+        }
+
+        res.json({
+            message: 'User account deleted successfully'
+        })
+
+    } catch (error) {
+        console.error('Delete user error:', error);
+        res.status(500).json({
+            error: 'Error deleting user',
+            details: error.message
+        });
+    }
+};
