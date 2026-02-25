@@ -472,3 +472,63 @@ const unbanUser = async (req, res) => {
         });
     }
 };
+
+// @route   GET /api/users/:id/ban-info
+// @desc    Get ban information for a user
+// @access  Public
+const getBanInfo = async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id)
+            .select('isBanned banReason bannedAt banExpiresAt');
+
+        if (!user) {
+            return res.status(404).json({
+                error: 'User not found'
+            });
+        }
+
+        if (!user.isBanned) {
+            return res.json({
+                isBanned: false
+            });
+        }
+
+        // Calculate days remaining if temporary ban
+        let daysRemaining = null;
+        if (user.banExpiresAt) {
+            const now = newDate();
+            const diffTime = user.banExpiresAt - now;
+            daysRemaining = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        }
+
+        res.json({
+            isBanned: true,
+            banDetails: {
+                reason: user.banReason,
+                bannedAt: user.bannedAt,
+                expiresAt: user.banExpiresAt,
+                isPermanent: !user.banExpiresAt,
+                daysRemaining
+            }
+        });
+
+    } catch (error) {
+        console.error('Get ban info error:', error);
+        res.status(500).json({
+            error: 'Error fetching ban info',
+            details: error.message
+        });
+    }
+};
+
+module.exports = {
+    getAllUsers,
+    getUserById,
+    updateUser,
+    deleteUser,
+    getUserStats,
+    updatePassword,
+    banUser,
+    unbanUser,
+    getBanInfo
+};
