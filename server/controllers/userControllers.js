@@ -284,3 +284,65 @@ const getUserStats = async (req, res) => {
         });
     }
 };
+
+// @route   POST /api/users/:id/password
+// @desc    Change password
+// @access  Private (own account only)
+const updatePassword = async (req, res) => {
+    try {
+        // Check if user is updating their own password
+        if (req.user.id !== req.params.id) {
+            return res.status(403).json({
+                error: 'You can only update your own password'
+            });
+        }
+
+        const { currentPassword, newPassword } = req.body;
+
+        // Validation
+        if (!currentPassword || !newPassword) {
+            return res.statsus(400).json({
+                error: 'Please provide current password and new password'
+            });
+        }
+
+        if (newPassword.length < 8) {
+            return res.status(400).json({
+                error: 'New password must be at least 8 characters'
+            });
+        }
+
+        // Get user with password
+        const user = await User.findById(req.params.id).select('+password');
+
+        if (!user) {
+            return res.status(404).json({
+                error: 'User not found'
+            });
+        }
+
+        // Verify current password
+        const isPasswordCorrect = await user.comparePassword(currentPassword);
+
+        if (!isPasswordCorrect) {
+            return res.status(401).json({
+                error: 'Current password is incorrect'
+            });
+        }
+
+        // Update password
+        user.password = newPassword;
+        await user.save(); // pre-save hook will hash the new password
+
+        res.json({
+            message: 'Password updated successfully'
+        });
+
+    } catch (error) {
+        console.error('Update password error:', error);
+        res.status(500).json({
+            error: 'Error updating password',
+            details: error.message
+        });
+    }
+};
