@@ -432,5 +432,43 @@ const unbanUser = async (req, res) => {
                 error: 'User not found'
             });
         }
+
+        if (!user.isBanned) {
+            return res.status(400).json({
+                error: 'User is not banned'
+            });
+        }
+
+        // Update ban history with unban info
+        if (user.banHistory.length > 0) {
+            const lastBan = user.banHistory[user.banHistory.length -1];
+            lastBan.unbannedAt = new Date();
+            lastBan.unbannedBy = req.user.id;
+        }
+
+        // Clear ban fields
+        user.isBanned = false;
+        user.banReason = null;
+        user.bannedAt = null;
+        user.bannedBy = null;
+        user.banExpiresAt = null;
+
+        await user.save();
+
+        res.json({
+            message: 'User unbanned successfully',
+            user: {
+                userId: user._id,
+                username: user.username,
+                isBanned: user.isBanned
+            }
+        });
+
+    } catch (error) {
+        console.error('Unban user error:', error);
+        res.status(500).json({
+            error: 'Error unbanning user',
+            details: error.message
+        });
     }
-}
+};
