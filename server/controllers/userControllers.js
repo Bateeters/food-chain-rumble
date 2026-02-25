@@ -346,3 +346,91 @@ const updatePassword = async (req, res) => {
         });
     }
 };
+
+// @route   POST /api/users/:id/ban
+// @desc    Ban a user
+// @access  Private/Admin
+const banUser = async (req, res) => {
+    try {
+        const { reason, duration } = req.body;
+
+        // Validation
+        if (!reason) {
+            return res.status(400).json({
+                error: 'Ban reason is required'
+            });
+        }
+
+        // Calculate ban expiration
+        let banExpiresAt = null;
+        if (duration && duration !== 'permanent') {
+            const days = parseInt(duration);
+            banExpiresAt = new Date();
+            banExpiresAt.setDate(banExpiresAt.getDate() + days);
+        }
+
+        // Update user
+        const user = await User.findByIdAndUpdate(
+            req.params.id,
+            {
+                isBanned: true,
+                banReason: reason,
+                bannedAt: newDate(),
+                bannedBy: req.user.id,
+                banExpiresAt: banExpiresAt,
+                $push: {
+                    banHistory: {
+                        reason,
+                        bannedAt: new Date(),
+                        bannedBy: req.user.id,
+                        duration: duration === 'permanent' ? 'permanent' : `${duration} days`
+                    }
+                }
+            },
+            { new: true }
+        );
+
+        if (!user) {
+            return res.status(404).json({
+                error: 'User not found'
+            });
+        }
+
+        res.json({
+            message: 'User banned successfully',
+            ban: {
+                userId: user._id,
+                username: user.username,
+                isBanned: user.isBanned,
+                reason: user.banReason,
+                bannedAt: user.bannedAt,
+                bannedBy: user.bannedBy,
+                expiresAt: user.banExpiresAt,
+                isPermanent: !user.banExpiresAt
+            }
+        });
+    } catch (error) {
+        console.error('Update user ban error:', error);
+        res.status(500).json({
+            error: 'Error updating user ban',
+            details: error.message
+        });
+    }
+};
+
+// @route   POST /api/users/:id/unban
+// @desc    Unban a user
+// @access  Private/Admin
+const unbanUser = async (req, res) => {
+    try {
+        const { reason } = req.body;
+
+        const user = await User.findById(req.params.id);
+
+        if (!user) {
+            return res.status(400).json({
+                error: 'User not found'
+            });
+        }
+    }
+}
