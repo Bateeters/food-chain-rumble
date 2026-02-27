@@ -62,4 +62,14 @@ router.post('/:id/unban', protect, isAdmin, unbanUser);
 // @access  Public
 router.get('/:id/ban-info', getBanInfo);
 
+// @route   POST /api/users/:id/email/request-change
+// @desc    Request email change (sends verification email)
+// @access  Private (own account only)
+router.post('/:id/email/request-change', protect, requestEmailChange);
+
+// @route   POST /api/users/:id/email/verify-change
+// @desc    Verify requested email change with sent token
+// @access  Public (but requires token)
+router.post('/:id/email/verify-change', verifyEmailChange);
+
 module.exports = router;

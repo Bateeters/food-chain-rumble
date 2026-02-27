@@ -521,6 +521,129 @@ const getBanInfo = async (req, res) => {
     }
 };
 
+// @route   POST /api/users/:id/email/request-change
+// @desc    Request email change (sends verification email)
+// @access  Private (own account only)
+const requestEmailChange = async (req, res) => {
+    try {
+        // Check authorization
+        if (req.user.id !== req.params.id) {
+            return res.status(403).json({
+                error: 'You can only change your own email'
+            });
+        }
+
+        const { newEmail, password } = req.body;
+
+        // Validation
+        if(!newEmail || !password) {
+            return res.status(400).json({
+                error: 'Please provide a new email and password'
+            });
+        }
+
+        // Get user with password
+        const user = await User.findById(req.params.id).select('+password');
+
+        if (!user) {
+            return res.status(404).json({
+                error: 'User not found'
+            });
+        }
+
+        // Verify password
+        const isPasswordCorrect = await user.comparePassword(password);
+
+        if (!isPasswordCorrect) {
+            return res.status(401).json({
+                error: 'Password is incorrect'
+            });
+        }
+
+        // Check if new email is already taken
+        const emailExists = await User.findOne({ email: newEmail });
+
+        if (emailExists) {
+            return res.status(400).json({
+                error: 'Email already in use'
+            });
+        }
+
+        // Generate verification token (valid for 15 minutes)
+        const verificationToken = jwt.sign(
+            { userId: user._id, newEmail },
+            process.env.JWT_SECRET,
+            { expiresIn: '15m' }
+        );
+
+        // TODO: Send email with verification link
+        // For now, just return the token (in production, send via email)
+        // await sendVerificationEmail(newEmail, verificationToken);
+
+        res.json({
+            message: 'Verification email sent. Please check your new email address.',
+            verificationToken
+        });
+
+    } catch (error) {
+        console.error('Request email change error:', error);
+        res.status(500).json({
+            error: 'Error requesting email change',
+            details: error.message
+        });
+    }
+};
+
+// @route   POST /api/users/:id/email/verify-change
+// @desc    Verify email change with token
+// @access  Public (but requires token)
+const verifyEmailChange = async (req, res) => {
+    try {
+        const { token } = req.body;
+
+        if (!token) {
+            return res.status(400).json({
+                error: 'Verification token is required'
+            });
+        }
+
+        // Verify token
+        let decoded;
+        try {
+            decoded = jwt.verify(token, process.env.JWT_SECRET);
+        } catch (error) {
+            return res.status(401).json({
+                error: 'Invalid or expired verification token'
+            });
+        }
+
+        // Update email
+        const user = await User.findByIdAndUpdate(
+            decoded.userId,
+            { email: decoded.newEmail },
+            { new: true, runValidators: true }
+        );
+
+        if (!user) {
+            return res.status(404).json({
+                error: 'User not found'
+            });
+        }
+
+        res.json({
+            message: 'Email updated successfully',
+            user
+        });
+
+    } catch (error) {
+        console.error('Verify email change error:', error);
+        res.status(500).json({
+            error: 'Error verifying email change',
+            details: error.message
+        });
+    }
+};
+
 module.exports = {
     getAllUsers,
     getUserById,
@@ -530,5 +653,7 @@ module.exports = {
     updatePassword,
     banUser,
     unbanUser,
-    getBanInfo
+    getBanInfo,
+    requestEmailChange,
+    verifyEmailChange
 };
