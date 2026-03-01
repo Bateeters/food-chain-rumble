@@ -136,7 +136,7 @@ const submitMatch = async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Submit match error:', error):
+        console.error('Submit match error:', error);
         res.status(500).json({
             error: 'Error submitting match',
             details: error.message
