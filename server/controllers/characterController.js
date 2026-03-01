@@ -100,7 +100,7 @@ const createCharacter = async (req, res) => {
         // Validation
         if (!name || !description) {
             return res.status(400).json({
-                error: 'Name and description are requiured'
+                error: 'Name and description are required'
             });
         }
 
