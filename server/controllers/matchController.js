@@ -201,3 +201,207 @@ const getMatches = async (req, res) => {
         });
     }
 };
+
+// @route   GET /api/matcches/recent
+// @desc    Get recent matches (public)
+// @access  Public
+const getRecentMatches = async (req, res) => {
+    try {
+        const { gameMode, limit = 10 } = req.query;
+
+        let filter = {};
+        if (gameMode) {
+            filter.gameMode = gameMode;
+        }
+
+        const matches = await Match.find(filter)
+            .populate('players.user', 'username avatar')
+            .populate('players.character', 'name image')
+            .sort({ createdAt: -1 })
+            .limit(parseInt(limit));
+
+        res.json({
+            recentMatches: matches,
+            total: matches.length
+        });
+
+    } catch (error) {
+        console.error('Get recent matches error:', error);
+        res.status(500).json({
+            error: 'Error fetching recent matches',
+            details: error.message
+        });
+    }
+};
+
+// @route   GET /api/matches/:id
+// @desc    Get match by ID
+// @access  Public
+const getMatchById = async (req, res) => {
+    try {
+        const match = await Match.findById(req.params.id)
+            .populate('players.user', 'username avatar')
+            .populate('players.character', 'name image');
+
+        if (!match) {
+            return res.status(404).json({
+                error: 'Match not found'
+            });
+        }
+
+        res.json({ match });
+
+    } catch (error) {
+        console.error('Get match by ID error:', error);
+        res.status(500).json({
+            error: 'Error fetching match',
+            details: error.message
+        });
+    }
+};
+
+// @route   GET /api/matches/user/:userId
+// @desc    Get user match history
+// @access  Public
+const getUserMatchHistory = async (req, res) => {
+    try {
+        const { gameMode, character, page = 1, limit = 20 } = req.query;
+
+        let filter = {
+            'players.user': req.params.userId
+        };
+
+        if (gameMode) {
+            filter.gameMode = gameMode;
+        }
+
+        if (character) {
+            filter['players.user.character'] = character;
+        }
+
+        const matches = await Match.find(filter)
+            .populate('players.user', 'username avatar')
+            .populate('players.character', 'name image')
+            .sort({ createdAt: -1 })
+            .limit(limit * 1)
+            .skip((page - 1) * limit);
+
+        const total = await Match.countDocuments(filter);
+
+        // Calculate summary stats
+        let wins = 0;
+        let losses = 0;
+
+        matches.forEach(match => {
+            const playerData = match.players.find(p => p.user._id.toString() === req.params.userId);
+            if (playerData) {
+                if (playerData.result === 'win') wins++;
+                if (playerData.result === 'loss') losses++;
+            }
+        });
+
+        res.json({
+            user: {
+                userId: req.params.userId
+            },
+            matches,
+            pagination: {
+                page: number(page),
+                limit: number(limit),
+                total,
+                pages: Math.ceil(total / limit)
+            },
+            summary: {
+                totalMatches: wins + losses,
+                wins,
+                losses,
+                winRate: wins + losses > 0 ? ((wins / (wins + losses)) * 100).toFixed(2) : 0
+            }
+        });
+
+    } catch (error) {
+        console.error('Get user match history error:', error);
+        res.status(500).json({
+            error: 'Error fetching user match history',
+            details: error.message
+        });
+    }
+};
+
+// @route   DELETE /api/matches/:id
+// @desc    Delete match (admin only - for fixing errors)
+// @access  Private/Admin
+const deleteMatch = async (req, res) => {
+    try {
+        const match = await Match.findById(req.params.id);
+
+        if (!match) {
+            return res.status(404).json({
+                error: 'Match not found'
+            });
+        }
+
+        // Reverse the stats updates (this is complex - simplified version)
+        // In production, you'd want to be more careful about this
+        for (const player of match.players) {
+            await PlayerStats.findOneAndUpdate(
+                {
+                    user: player.user,
+                    character: player.character,
+                    gameMode: match.gameMode
+                },
+                {
+                    $inc: {
+                        'stats.totalMatches': -1,
+                        'stats.wins': player.result === 'win' ? -1 : 0,
+                        'stats.losses': player.result === 'loss' ? -1 : 0,
+                        'stats.totalKills': -(player.stats.kills || 0),
+                        'stats.totalDeaths': -(player.stats.deaths || 0),
+                        'stats.totalAssists': -(player.stats.assists || 0),
+                        'stats.totalDamageDealt': -(player.stats.damageDealt || 0),
+                        'stats.totalDamageTaken': -(player.stats.damageTaken || 0),
+                    }
+                }
+            );
+
+            await Character.findByIdAndUpdate(
+                player.character,
+                {
+                    $inc: {
+                        'globalStats.totalPicks': -1,
+                        'globalStats.totalWins': player.result === 'win' ? -1 : 0,
+                        'globalStats.totalLosses': player.result === 'loss' ? -1 : 0,
+                        'globalStats.totalKills': -(player.stats.kills || 0),
+                        'globalStats.totalDeaths': -(player.stats.deaths || 0),
+                        'globalStats.totalAssists': -(player.stats.assists || 0),
+                        'globalStats.totalDamageDealt': -(player.stats.damageDealt || 0),
+                        'globalStats.totalDamageTaken': -(player.stats.damageTaken || 0),
+                    }
+                }
+            );
+        }
+
+        await match.deleteOne();
+
+        res.json({
+            message: 'Match deleted successfully',
+            matchId: req.params.id
+        });
+
+    } catch (error) {
+        console.error ('Delete match error:', error);
+        res.status(500).json({
+            error: 'Error deleting match',
+            details: error.message
+        });
+    }
+};
+
+module.esports = {
+    submitMatch,
+    getMatches,
+    getRecentMatches,
+    getMatchById,
+    getUserMatchHistory,
+    deleteMatch
+};
