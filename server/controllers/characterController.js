@@ -163,7 +163,7 @@ const updateCharacter = async (req, res) => {
         const character = await Character.findByIdAndUpdate(
             req.params.id,
             updates,
-            { $ne: true, runValidators: true }
+            { new: true, runValidators: true }
         );
 
         if (!character) {
@@ -285,7 +285,7 @@ const getCharacterStats = async (req, res) => {
                 stats: {
                     totalMatches: stat.stats.totalMatches,
                     wins: stat.stats.wins,
-                    losses: stat.sttas.losses,
+                    losses: stat.stats.losses,
                     winRate: stat.winRate
                 }
             }))
