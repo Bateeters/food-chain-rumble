@@ -143,3 +143,61 @@ const submitMatch = async (req, res) => {
         });
     }
 };
+
+// @route   GET /api/matches
+// @desc    Get matches with filters
+// @access  Private
+const getMatches = async (req, res) => {
+    try {
+        const { gameMode, startDate, endDate, character, page = 1, limit = 20 } = req.query;
+
+        // Build filter
+        let filter = {};
+
+        // If not admin, only show user's own matches
+        if (req.user.role !== 'admin') {
+            filter['players.User'] = req.user.id;
+        }
+
+        if (gameMode) {
+            filter.gameMode = gameMode;
+        }
+
+        if (character) {
+            filter['players.character'] = character;
+        }
+
+        if (startDate || endDate) {
+            filter.createdAt = {};
+            if (startDate) filter.createdAt.$gte = new Date(startDate);
+            if (endDate) filter.createdAt.$lte = new Date(endDate);
+        }
+
+        // Get matches
+        const matches = await Match.find(filter)
+            .populate('players.user', 'username avatar')
+            .populate('players.character', 'name image')
+            .sort({ createdAt: -1 })
+            .limit(limit * 1)
+            .skip((page - 1) * limit);
+
+        const total = await Match.countDocuments(filter);
+
+        res.json({
+            matches,
+            pagination: {
+                page: Number(page),
+                limit: Number(limit),
+                total,
+                pages: Math.ceil(total / limit)
+            }
+        });
+
+    } catch (error) {
+        console.error('Get matches error:', error);
+        res.status(500).json({
+            error: 'Error fetching matches',
+            details: error.message
+        });
+    }
+};
