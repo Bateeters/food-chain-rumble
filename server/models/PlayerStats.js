@@ -120,7 +120,7 @@ const playerStatsSchema = new mongoose.Schema({
         }
     },
 
-    // Uncertainty factor (x-factor for Elo calculation)
+    // Uncertainty factor (K-factor for Elo calculation)
     mmrUncertainty: {
         type: Number,
         default: 40,
