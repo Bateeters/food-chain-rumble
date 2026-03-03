@@ -132,3 +132,114 @@ const getLeaderboard = async (req, res) => {
         });
     }
 };
+
+// @route   GET /api/leaderboard/:gameMode/rank/:userId
+// @desc    Get a specific player's rank in a game mode
+// @access  Public
+const getPlayerRank = async (req, res) => {
+    try {
+        const { gameMode, userId } = req.params;
+
+        // Validate game mode
+        const validModes = ['1v1_ranked', '2v2_ranked', '3v3_ranked'];
+        if (!validModes.includes(gameMode)) {
+            return res.status(400).json({
+                error: 'Invalid game mode',
+                validModes
+            });
+        }
+
+        // Get player's total stats for this mode
+        const playerStats = await PlayerStats.aggregate([
+            { $match: {user: mongoose.Types.ObjectId(userId), gameMode } },
+            {
+                $group: {
+                    _id: '$user',
+                    totalMatches: { $sum: '$stats.totalMatches' },
+                    totalWins: { $sum: '$stats.wins' },
+                    totalLosses: { $sum: '$stats.losses' },
+                    totalKills: { $sum: '$stats.totalKills' },
+                    totalDeaths: { $sum: '$stats.totalDeaths' },
+                    totalAssists: { $sum: '$stats.totalAssists' },
+                    topCharacters: {
+                        $push: {
+                            character: '$character',
+                            matches: '$stats.totalMatches',
+                            wins: '$stats.wins'
+                        }
+                    }
+                }
+            }
+        ]);
+
+        if (!playerStats.length) {
+            return res.status(404).json({
+                error: 'Player has no stats in this game mode'
+            });
+        }
+
+        const stats = playerStats[0];
+
+        // Calculate player's rank (count how many players have more wins)
+        const rankData = await PlayerStats.aggregate([
+            { $match: { gameMode } },
+            { 
+                $group: {
+                    _id: '$user',
+                    totalWins: { $sum: '$stats.wins' }
+                }
+            },
+            {
+                $match: {
+                    totalWins: { $gt: stats.totalWins }
+                }
+            },
+            { $count: 'playersAbove' }
+        ]);
+
+        const rank = (rankData[0]?.playersAbove || 0) + 1;
+
+        // Get total players count
+        const totalPlayersData = await PlayerStats.aggregate([
+            { $match: { gameMode } },
+            { $group: { _id: '$user' } },
+            { $count: 'total' }
+        ]);
+
+        const totalPlayers = totalPlayersData[0]?.total || 0;
+
+        // Populate user and character details
+        await PlayerStats.populate(stats, [
+            { path: '_id', select: 'username avatar' },
+            { path: 'topCharacters.character', select: 'name image' }
+        ]);
+
+        // Sort and limit top characters
+        stats.topCharacters.sort((a, b) => b.matches - a.matches);
+        stats.topCharacters = stats.topCharacters.slice(0, 3);
+
+        res.json({
+            gameMode,
+            user: stats._id,
+            rank,
+            totalPlayers,
+            percentile: totalPlayers > 0 ? ((1 - (rank - 1) / totalPlayers) * 100).toFixed(2) : 0,
+            stats: {
+                totalMatches: stats.totalMatches,
+                wins: stats.totalWins,
+                losses: stats.totalLosses,
+                winRate: stats.totalMatches > 0 ? ((stats.totalWins / stats.totalMatches) * 100).toFixed(2): 0,
+                kdRatio: stats.totalDeaths > 0 ? (stats.totalKills / stats.totalDeaths).toFixed(2) : stats.totalKills,
+                assistsPerMach: stats.totalMatches > 0 ? (stats.totalAssists / stats.totalMatches).toFixed(2) : 0
+            },
+            topCharacters: stats.topCharacters
+        });
+
+    } catch (error) {
+        console.error('Get player rank error:', error);
+        res.status(500).json({
+            error: 'Error fetching player rank',
+            details: error.message
+        });
+    }
+};
