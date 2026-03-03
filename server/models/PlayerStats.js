@@ -80,6 +80,57 @@ const playerStatsSchema = new mongoose.Schema({
             // Current consecutive wins (reset on loss)
         }
     },
+
+    // MMR System (Ranked modes only)
+    mmr: {
+        type: Number,
+        default: 1000,
+        win: 0
+        // Starting MMR: 1000 (Bronze)
+        // Updates after each ranked match
+    },
+
+    peakMmr: {
+        type: Number,
+        default: 1000
+        // Higheset MMR ever achieved
+    },
+
+    // Visible rank tier (derived from MMR)
+    rank: {
+        tier: {
+            type: String,
+            enum: [
+                'Bronze',
+                'Silver',
+                'Gold',
+                'Platinum',
+                'Diamond',
+                'Master',
+                'Grandmaster'
+            ],
+            default: 'Bronze'
+        },
+        division: {
+            type: Number,
+            min: 1,
+            max: 4,
+            default: 4
+            // Division 4 is lowest, 1 is highest within tier
+        }
+    },
+
+    // Uncertainty factor (x-factor for Elo calculation)
+    mmrUncertainty: {
+        type: Number,
+        default: 40,
+        min: 10,
+        max: 40
+        // Starts high (40) for placement matches
+        // Decreases as more matches played (settles at 10-20)
+        // Higher = bigger swings per match
+    },
+
     lastPlayed: {
         type: Date,
         default: Date.now
