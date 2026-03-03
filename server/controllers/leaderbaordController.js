@@ -243,3 +243,84 @@ const getPlayerRank = async (req, res) => {
         });
     }
 };
+
+// @route   GET /api/leaderboard/:gameMode/characters
+// @desc    Get top characters for a specific game mode
+// @access  Public
+const getCharacterLeaderboard = async (req, res) => {
+    try {
+        const { gameMode } = req.params;
+
+        // Validate game mode
+        const validModes = ['1v1_ranked', '2v2_ranked', '3v3_ranked'];
+        if (!validModes.includes(gameMode)) {
+            return res.status(400).json({
+                error: 'Invalid game mode',
+                validModes
+            });
+        }
+
+        // Aggregate stats by character
+        const characterStats = await PlayerStats.aggregate([
+            { $match: { gameMode } },
+            {
+                $group: {
+                    _id: '$character',
+                    totalPicks: { $sum: '$stats.totalMatches' },
+                    totalWins: { $sum: '$stats.wins' },
+                    totalLosses: { $sum: '$stats.losses' },
+                    totalAssists: { $sum: '$stats.assists' }
+                }
+            },
+            {
+                $addFields: {
+                    winRate: {
+                        $cond: [
+                            { $gt: [{ $add: ['$totalWins', '$totalLosses'] }, 0] },
+                            {
+                                $multiply: [
+                                    { $divide: ['$totalWins', { $add: ['$totalWins', '$totalLosses'] }] },
+                                    100
+                                ]
+                            },
+                            0
+                        ]
+                    }
+                }
+            },
+            { $sort: {winRate: -1 } }
+        ]);
+
+        // Populate character details
+        await Character.populate(characterStats, {
+            path: '_id',
+            select: 'name image difficulty'
+        });
+
+        // Calculate total picks across all characters for pick rate
+        const totalPicks = characterStats.reduce((sum, char) => sum + char.totalPicks, 0);
+
+        res.json({
+            gameMode,
+            characters: characterStats.map((stat, index) => ({
+                rank: index + 1,
+                character: stat._id,
+                stats: {
+                    totalPicks: stat.totalPicks,
+                    wins: stat.totalWins,
+                    losses: stat.totalLosses,
+                    winRate: Number(stat.winRate.toFixed(2)),
+                    pickRate: totalPicks > 0 ? Number(((stat.totalPicks / totalPicks) * 100).toFixed(2)) : 0
+                }
+            }))
+        });
+
+    } catch (error) {
+        console.error('Get character leaderboard error:', error);
+        res.status(500).json({
+            error: 'Error fetching character leaderboard',
+            details: error.message
+        });
+    }
+};
+
