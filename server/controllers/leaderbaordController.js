@@ -324,3 +324,230 @@ const getCharacterLeaderboard = async (req, res) => {
     }
 };
 
+// @route   GET /api/leaderboard/characters/top
+// @desc    Get overall top characters across all ranked modes
+// @access  Public
+const getTopCharacters = async (req, res) => {
+  try {
+    const { limit = 10, gameMode } = req.query;
+
+    let matchFilter = {};
+    if (gameMode) {
+      matchFilter.gameMode = gameMode;
+    } else {
+      // Only ranked modes
+      matchFilter.gameMode = { $in: ['1v1_ranked', '2v2_ranked', '3v3_ranked'] };
+    }
+
+    // Aggregate across all ranked modes
+    const characterStats = await PlayerStats.aggregate([
+      { $match: matchFilter },
+      {
+        $group: {
+          _id: '$character',
+          totalPicks: { $sum: '$stats.totalMatches' },
+          totalWins: { $sum: '$stats.wins' },
+          totalLosses: { $sum: '$stats.losses' }
+        }
+      },
+      {
+        $addFields: {
+          overallWinRate: {
+            $cond: [
+              { $gt: [{ $add: ['$totalWins', '$totalLosses'] }, 0] },
+              {
+                $multiply: [
+                  { $divide: ['$totalWins', { $add: ['$totalWins', '$totalLosses'] }] },
+                  100
+                ]
+              },
+              0
+            ]
+          }
+        }
+      },
+      { $sort: { overallWinRate: -1 } },
+      { $limit: parseInt(limit) }
+    ]);
+
+    // Populate character details
+    await Character.populate(characterStats, {
+      path: '_id',
+      select: 'name image difficulty'
+    });
+
+    // Get stats by mode for each character
+    for (let stat of characterStats) {
+      const statsByMode = await PlayerStats.aggregate([
+        {
+          $match: {
+            character: stat._id._id,
+            gameMode: { $in: ['1v1_ranked', '2v2_ranked', '3v3_ranked'] }
+          }
+        },
+        {
+          $group: {
+            _id: '$gameMode',
+            picks: { $sum: '$stats.totalMatches' },
+            wins: { $sum: '$stats.wins' },
+            losses: { $sum: '$stats.losses' }
+          }
+        },
+        {
+          $addFields: {
+            winRate: {
+              $cond: [
+                { $gt: [{ $add: ['$wins', '$losses'] }, 0] },
+                {
+                  $multiply: [
+                    { $divide: ['$wins', { $add: ['$wins', '$losses'] }] },
+                    100
+                  ]
+                },
+                0
+              ]
+            }
+          }
+        }
+      ]);
+
+      stat.statsByMode = {};
+      statsByMode.forEach(modeStat => {
+        stat.statsByMode[modeStat._id] = {
+          picks: modeStat.picks,
+          winRate: Number(modeStat.winRate.toFixed(2))
+        };
+      });
+    }
+
+    res.json({
+      topCharacters: characterStats.map((stat, index) => ({
+        rank: index + 1,
+        character: stat._id,
+        overallStats: {
+          totalPicks: stat.totalPicks,
+          totalWins: stat.totalWins,
+          totalLosses: stat.totalLosses,
+          overallWinRate: Number(stat.overallWinRate.toFixed(2))
+        },
+        statsByMode: stat.statsByMode
+      }))
+    });
+
+  } catch (error) {
+    console.error('Get top characters error:', error);
+    res.status(500).json({
+      error: 'Error fetching top characters',
+      details: error.message
+    });
+  }
+};
+
+// @route   GET /api/leaderboard/balance/characters
+// @desc    Get DETAILED character balance data (Admin Only)
+// @access  Private/Admin
+const getCharacterBalanceData = async (req, res) => {
+    try {
+        const { gameMode = '1v1_ranked' } = req.query;
+
+        // Get character performance data
+        const characters = await Character.find({ isAvailable: true });
+
+        const balanceData = [];
+
+        for (const character of characters) {
+            // Get stats for this character in this mode
+            const stats = await PlayerStats.aggregate([
+                {
+                    $match: {
+                        character: character._id,
+                        gameMode
+                    }
+                },
+                {
+                    $group: {
+                        _id: null,
+                        totalPicks: { $sum: '$stats.totalMatches' },
+                        totalWins: { $sum: '$stats.wins' },
+                        totalLosses: { $sum: '$stats.losses' }
+                    }
+                }
+            ]);
+
+            if (stats.length === 0) continue;
+
+            const stat = stats[0];
+            const totalMatches = stat.totalWins + stat.totalLosses;
+            const winRate = totalMatches > 0 ? ((stat.totalWins / totalMatches) * 100).toFixed(2) : 0;
+
+            // Calculate total picks across all character for pick rate
+            const totalPicksAllChars = await PlayerStats.aggregate([
+                { $match: { gameMode } },
+                { $group: { _id: null, total: { $sum: '$stats.totalMatches' } } }
+            ]);
+
+            const pickRate = totalPicksAllChars[0]?.total > 0
+                ? ((stat.totalPicks / totalPicksAllChars[0].total) * 100).toFixed(2)
+                : 0;
+
+            // Determine flags
+            const flags = [];
+            let recommendation = '';
+
+            if (winRate > 55) {
+                flags.push('HIGH_WIN_RATE');
+                recommendation = `Win rate ${winRate.toFixed(1)}% is above 55% baseline - consider nerfs`;
+            } else if (winRate < 45) {
+                flags.push('LOW_WIN_RATE');
+                recommendation = `Win rate ${winRate.toFixed(1)}% is below 45% baseline - consider buffs`;
+            }
+
+            if (pickrate < 5) {
+                flags.push('LOW_PICK_RATE');
+                recommendation += recommendation ? ' | ' : '';
+                recommendation += `Pick rate ${pickRate.toFixed(1)}% is very low - may be underperforming`;
+            } else if (pickRate > 25) {
+                flags.push('HIGH_PICK_RATE');
+                recommendation += recommendation ? ' | ' : '';
+                recommendation += `Pick rate ${pickRate.toFixed(1)}% is very high - possibly overtuned`
+            }
+
+            balanceData.push({
+                name: character.name,
+                winRate: Number(winRate.toFixed(2)),
+                pickRate: Number(pickRate.toFixed(2)),
+                totalPicks: stat.totalPicks,
+                flagged: flags.length > 0,
+                flags,
+                recommendation: recommendation || 'Stats within acceptable ranges'
+            });
+        }
+
+        // Sort by win rate descending
+        balanceData.sort((a, b) => b.winRate - a.winRate);
+
+        res.json({
+            balanceReport: {
+                generatedAt: new Date(),
+                gameMode,
+                characters: balanceData,
+                alerts: balanceData
+                    .filter(char => char.flagged)
+                    .map(char => ({
+                        severity: char.flags.includes('HIGH_WIN_RATE') || char.flags.includes('LOW_WIN_RATE') ? 'HIGH' : 'MEDIUM',
+                        character: char.name,
+                        issues: char.flags,
+                        recommendation: char.recommendation
+                    }))
+            }
+        });
+
+    } catch (error) {
+        console.error('Get character balance data error:', error);
+        res.status(500).json({
+            error: 'Error fetching character balance data',
+            details: error.message
+        });
+    }
+};
+
