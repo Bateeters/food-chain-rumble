@@ -551,3 +551,67 @@ const getCharacterBalanceData = async (req, res) => {
     }
 };
 
+// @route   GET /api/leaderboard/balance/talents
+// @desc    Get talent usage and performance data (Admin Only)
+// @access  Private/Admin
+const getTalentBalanceData = async (req, res) => {
+    try {
+        const { gameMode = '1v1_ranked' } = req.query;
+
+        // This would use TalentStats model
+        // For now, return placeholder since we haven't implemented talent tracking in matches yet
+        res.json({
+            talentReport: {
+                generatedAt: new Date(),
+                gameMode,
+                message: 'Talent tracking will be implemented when match submission includes talent data',
+                note: 'TalentStats model is ready - needs match data to include talents field'
+            }
+        });
+
+    } catch (error) {
+        console.error('Get talent balance data error');
+        res.status(500).json({
+            error: 'Error fetching talent usage data',
+            details: error.message
+        });
+    }
+};
+
+// @route   GET /api/leaderboard/balance/builds
+// @desc    Get build combination data (Admin Only)
+// @access  Private/Admin
+const getBuildBalanceData = async (req, res) => {
+    try {
+        const { gameMode = '1v1_ranked' } = req.query;
+
+        // This would use BuildStats model
+        // For now, return placeholder since we haven't implemented build tracking in matches yet
+
+        res.json({
+            buildReport: {
+                generatedAt: new Date(),
+                gameMode,
+                message: 'Build tracking will be implemented when match submission includes talent data',
+                note: 'BuildStats model is ready - needs match data to include talents field'
+            }
+        });
+
+    } catch (error) {
+        console.error('Get build balance data error:', error);
+        res.status(500).json({
+            error: 'Error fetching build balance data',
+            details: error.message
+        });
+    }
+};
+
+module.exports = {
+    getLeaderboard,
+    getPlayerRank,
+    getCharacterLeaderboard,
+    getTopCharacters,
+    getCharacterBalanceData,
+    getTalentBalanceData,
+    getBuildBalanceData
+}
