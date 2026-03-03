@@ -58,6 +58,11 @@ const submitMatch = async (req, res) => {
             serverRegion
         });
 
+        // Update MMR for ranked matches only
+        if (gameMode.includes('_ranked')) {
+            await updatePlayerMMR(player, opponents, result);
+        }
+
         // Update stats for each player
         for (const player of players) {
             // Update or create PlayerStats

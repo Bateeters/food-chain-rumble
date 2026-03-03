@@ -93,7 +93,7 @@ const playerStatsSchema = new mongoose.Schema({
     peakMmr: {
         type: Number,
         default: 1000
-        // Higheset MMR ever achieved
+        // Highest MMR ever achieved
     },
 
     // Visible rank tier (derived from MMR)
