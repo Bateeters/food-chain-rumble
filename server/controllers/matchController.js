@@ -125,7 +125,7 @@ const submitMatch = async (req, res) => {
                 for (const opp of opponents) {
                     const oppStat = await PlayerStats.findOne({
                         user: opp.user,
-                        characer: opp.character,
+                        character: opp.character,
                         gameMode: match.gameMode
                     });
 
