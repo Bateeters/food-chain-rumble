@@ -65,7 +65,7 @@ const calculateMMRChange = (playerMMR, opponentMMR, playerWon, kFactor = 20) => 
 const calculatePerformanceBonus = (playerStats, teamAvgStats, result) => {
     let bonus = 0;
 
-    if (!teamAvgStats.damageDealt || !teamAvgStats.damageTaken || !teamAvgStats. assists) {
+    if (!teamAvgStats.damageDealt || !teamAvgStats.damageTaken || !teamAvgStats.assists) {
         return 0;
     }
 
@@ -73,19 +73,30 @@ const calculatePerformanceBonus = (playerStats, teamAvgStats, result) => {
     const damageRatio = playerStats.damageDealt / teamAvgStats.damageDealt;
     const tankRatio = playerStats.damageTaken / teamAvgStats.damageTaken;
     const assistRatio = playerStats.assists / teamAvgStats.assists;
+    let deathsRatio = 0;
+
+    if (teamAvgStats.deaths && teamAvgStats.deaths !== 0){
+        deathsRatio = playerStats.deaths / teamAvgStats.deaths;
+    }
 
     // Reward above-average performance in ANY stat
     if (damageRatio > 1.2) bonus += 1;
-    if (tankRatio > 1.3) bonus += 1;
+    if (tankRatio > 1.3 && deathsRatio <= 1.0) bonus += 1;
     if (assistRatio > 1.3) bonus += 1;
+    if (deathsRatio < 0.7) bonus += 1;
 
     // Small penalty for significantly below average in ALL metrics
-    if (damageRatio < 0.7 && tankRatio < 0.7 & assistRatio < 0.7) {
+    if (damageRatio < 0.7 && tankRatio < 0.7 && assistRatio < 0.7) {
         bonus -= 1;
     }
 
-    // Limit bonus range to -3 / 3
-    return Math.max(-3, Math.min(3, bonus));
+    // Penalty for excessive deaths
+    if (deathsRatio > 1.5) {
+        bonus -= 1;
+    }
+
+    // Limit bonus range to -4 / 4
+    return Math.max(-4, Math.min(4, bonus));
 };
 
 // Convert MMR to visible rank (tier and division)
@@ -115,24 +126,26 @@ const calculateTeamAverageStats = (teamPlayers) => {
     const teamSize = teamPlayers.length;
 
     if (teamSize === 0) {
-        return { damageDealt: 0, damageTaken: 0, assists: 0 };
+        return { damageDealt: 0, damageTaken: 0, assists: 0, deaths: 0 };
     }
 
     const totals = teamPlayers.reduce((sum, player) => ({
         damageDealt: sum.damageDealt + (player.stats.damageDealt || 0),
         damageTaken: sum.damageTaken + (player.stats.damageTaken || 0),
-        assists: sum.assists + (player.stats.assists || 0)
-    }), { damageDealt: 0, damageTaken: 0, assists: 0 });
+        assists: sum.assists + (player.stats.assists || 0),
+        deaths: sum.deaths + (player.stats.deaths || 0),
+    }), { damageDealt: 0, damageTaken: 0, assists: 0, deaths: 0 });
 
     return {
         damageDealt: totals.damageDealt / teamSize,
         damageTaken: totals.damageTaken / teamSize,
-        assists: totals.assists / teamSize
+        assists: totals.assists / teamSize,
+        deaths: totals.deaths / teamSize
     };
 };
 
 // Calculate average opponent MMR for team games
-const calcuateAverageOpponentMMR = (opponents) => {
+const calculateAverageOpponentMMR = (opponents) => {
     if (opponents.length === 0) return 1000; // Default
 
     const totalMMR = opponents.reduce((sum, opp) => sum + (opp.mmr || 1000), 0);
@@ -146,5 +159,5 @@ module.exports = {
     calculatePerformanceBonus,
     getRankFromMMR,
     calculateTeamAverageStats,
-    calculateTeamAverageStats
+    calculateAverageOpponentMMR
 };
