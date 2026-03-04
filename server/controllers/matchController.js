@@ -5,6 +5,15 @@ const User = require('../models/User');
 const ForumBoard = require('../models/ForumBoard');
 const mongoose = require('mongoose');
 
+const {
+    calculateExpectedScore,
+    calculateMMRChange,
+    calculatePerformanceBonus,
+    getRankFromMMR,
+    calculateTeamAverageStats,
+    calculateAverageOpponentMMR
+} = require('../utils/mmrHelpers');
+
 // @route   POST /api/matches
 // @desc    Submit match results
 // @access  Private/Admin (game server or admin)
@@ -58,11 +67,6 @@ const submitMatch = async (req, res) => {
             serverRegion
         });
 
-        // Update MMR for ranked matches only
-        if (gameMode.includes('_ranked')) {
-            await updatePlayerMMR(player, opponents, result);
-        }
-
         // Update stats for each player
         for (const player of players) {
             // Update or create PlayerStats
@@ -110,6 +114,76 @@ const submitMatch = async (req, res) => {
             }
 
             await playerStat.save();
+
+            // Update MMR
+            if (match.gameMode.includes('_ranked')) {
+                // Get opponents for this player
+                const opponents = match.players.filter(p => p.team !== player.team);
+
+                // Need to fetch opponent PlayerStats to get their MMRs
+                const opponentStats = []; // initialize empty array
+                for (const opp of opponents) {
+                    const oppStat = await PlayerStats.findOne({
+                        user: opp.user,
+                        characer: opp.character,
+                        gameMode: match.gameMode
+                    });
+
+                    // Add to empty array
+                    if (oppStat) {
+                        opponentStats.push(oppStat);
+                    }
+                }
+
+                // Calculate average opponent MMR
+                avgOpponentMMR = calculateAverageOpponentMMR(opponentStats);
+
+                // Calculate team average stats for performance bonus
+                const teamPlayers = match.players.filter(p => p.team === player.team);
+                const teamAvgStats = calculateTeamAverageStats(teamPlayers);
+
+                // Calculate performance bonus
+                const performanceBonus = calculatePerformanceBonus(
+                    player.stats,
+                    teamAvgStats,
+                    player.result
+                );
+
+                // Get k-Factor (uncertainty)
+                const kFactor = playerStat.mmrUncertainty || 20;
+
+                // Calculate base MMR change
+                const baseMmrChange = calculateMMRChange(
+                    playerStat.mmr,
+                    avgOpponentMMR,
+                    player.result === 'win',
+                    kFactor
+                );
+
+                // Total MMR change (base + performance)
+                const totalMmrChange = baseMmrChange + performanceBonus;
+
+                // Update MMR
+                playerStat.mmr += totalMmrChange;
+                playerStat.mmr = Math.max(0, playerStat.mmr)
+
+                // Update peak MMR if needed
+                if (playerStat.mmr > playerStat.peakMmr) {
+                    playerStat.peakMmr = playerStat.mmr;
+                }
+
+                // Decrease uncertainty over time (placement matches)
+                if (playerStat.stats.totalMatches >= 10) {
+                    playerStat.mmrUncertainty = Math.max(10, playerStat.mmrUncertainty - 0.5);
+                }
+
+                // Update visible rank based on new MMR
+                const newRank = getRankFromMMR(playerStat.mmr);
+                playerStat.rank = newRank;
+
+                // Save MMR changes
+                await playerStat.save();
+            }
 
             // Update Character global stats
             await Character.findByIdAndUpdate(
