@@ -10,8 +10,8 @@ const mongoose = require('mongoose');
 const getLeaderboard = async (req, res) => {
     try {
         const { gameMode } = req.params;
-        const { page = 1 , limit = 100, search, region } = req.query;
-
+        const { page = 1, limit = 100 } = req.query;
+        
         // Validate game mode
         const validModes = ['1v1_ranked', '2v2_ranked', '3v3_ranked'];
         if (!validModes.includes(gameMode)) {
@@ -21,15 +21,18 @@ const getLeaderboard = async (req, res) => {
             });
         }
 
-        // Build filter
-        let filter = { gameMode };
-
         // Build aggregation pipeline to get top stats per user
         const leaderboard = await PlayerStats.aggregate([
-            { $match: filter },
+            { $match: { gameMode } },
             {
                 $group: {
                     _id: '$user',
+                    // Take higheset MMR across all characters in this mode
+                    highestMMR: { $max: '$mmr' },
+                    peakMMR: { $max: '$peakMmr' },
+                    // Also get rank from highest MMR character
+                    bestRank: { $first: '$rank' },
+                    // Sum stats across all characters
                     totalMatches: { $sum: '$stats.totalMatches' },
                     totalWins: { $sum: '$stats.wins' },
                     totalLosses: { $sum: '$stats.losses' },
@@ -40,7 +43,9 @@ const getLeaderboard = async (req, res) => {
                         $push: {
                             character: '$character',
                             matches: '$stats.totalMatches',
-                            wins: '$stats.wins'
+                            wins: '$stats.wins',
+                            mmr: '$mmr',
+                            rank: '$rank'
                         }
                     }
                 }
@@ -70,8 +75,10 @@ const getLeaderboard = async (req, res) => {
                     }
                 }
             },
-            { $sort: { totalWins: -1 } },
-            { $skip: (page - 1) * limit },
+            
+            // SORT BY MMR (Highest First)
+            { $sort: { highestMMR: -1 } },
+            { $skip: (page -1) * limit },
             { $limit: parseInt(limit) }
         ]);
 
@@ -86,13 +93,13 @@ const getLeaderboard = async (req, res) => {
             entry.user = entry._id;
             delete entry._id;
 
-            entry.topCharacters.sort((a, b) => b.matches - a.matches);
+            entry.topCharacters.sort((a, b) => b.mmr - a.mmr);
             entry.topCharacters = entry.topCharacters.slice(0, 3);
         });
 
         // Get total count for pagination
         const totalCount = await PlayerStats.aggregate([
-            { $match: filter },
+            { $match: { gameMode } },
             { $group: { _id: '$user' } },
             { $count: 'total' }
         ]);
@@ -104,6 +111,9 @@ const getLeaderboard = async (req, res) => {
             leaderboard: leaderboard.map((entry, index) => ({
                 rank: (page - 1) * limit + index + 1,
                 user: entry.user,
+                mmr: entry.highestMMR,
+                peakMMR: entry.peakMMR,
+                rank: entry.bestRank, // Visible rank (Gold 2, etc...)
                 stats: {
                     totalMatches: entry.totalMatches,
                     wins: entry.totalWins,
@@ -125,9 +135,9 @@ const getLeaderboard = async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Get leaderboard error:', error);
+        console.error('Get game mode leaderboard error');
         res.status(500).json({
-            error: 'Error fetching leaderboard',
+            error: 'Error fetching game mode leaderboard',
             details: error.message
         });
     }
@@ -149,12 +159,15 @@ const getPlayerRank = async (req, res) => {
             });
         }
 
-        // Get player's total stats for this mode
+        // Get player's highest MMR for this mode
         const playerStats = await PlayerStats.aggregate([
             { $match: {user: mongoose.Types.ObjectId(userId), gameMode } },
             {
                 $group: {
                     _id: '$user',
+                    highestMMR: { $max: '$mmr' },
+                    peakMMR: { $max: '$peakMmr' },
+                    bestRank: { $first: '$rank' },
                     totalMatches: { $sum: '$stats.totalMatches' },
                     totalWins: { $sum: '$stats.wins' },
                     totalLosses: { $sum: '$stats.losses' },
@@ -165,7 +178,9 @@ const getPlayerRank = async (req, res) => {
                         $push: {
                             character: '$character',
                             matches: '$stats.totalMatches',
-                            wins: '$stats.wins'
+                            wins: '$stats.wins',
+                            mmr: '$mmr',
+                            rank: '$rank'
                         }
                     }
                 }
@@ -180,18 +195,18 @@ const getPlayerRank = async (req, res) => {
 
         const stats = playerStats[0];
 
-        // Calculate player's rank (count how many players have more wins)
+        // Calculate player's rank (count how many players have higher MMR)
         const rankData = await PlayerStats.aggregate([
             { $match: { gameMode } },
             { 
                 $group: {
                     _id: '$user',
-                    totalWins: { $sum: '$stats.wins' }
+                    highestMMR: { $max: '$mmr' }
                 }
             },
             {
                 $match: {
-                    totalWins: { $gt: stats.totalWins }
+                    highestMMR: { $gt: stats.highestMMR }
                 }
             },
             { $count: 'playersAbove' }
@@ -214,8 +229,8 @@ const getPlayerRank = async (req, res) => {
             { path: 'topCharacters.character', select: 'name image' }
         ]);
 
-        // Sort and limit top characters
-        stats.topCharacters.sort((a, b) => b.matches - a.matches);
+        // Sort characters by MMR
+        stats.topCharacters.sort((a, b) => b.mmr - a.mmr);
         stats.topCharacters = stats.topCharacters.slice(0, 3);
 
         res.json({
@@ -224,6 +239,9 @@ const getPlayerRank = async (req, res) => {
             rank,
             totalPlayers,
             percentile: totalPlayers > 0 ? ((1 - (rank - 1) / totalPlayers) * 100).toFixed(2) : 0,
+            mmr: stats.highestMMR,
+            peakMMR: stats.peakMMR,
+            visibleRank: stats.bestRank,
             stats: {
                 totalMatches: stats.totalMatches,
                 wins: stats.totalWins,
