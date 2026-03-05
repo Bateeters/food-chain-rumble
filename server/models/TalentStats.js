@@ -29,9 +29,15 @@ const talentStatsSchema = new mongoose.Schema({
         required: true
     },
 
+    // Talent name (actual talent)
+    talentName: {
+        type: String,
+        required: true
+    },
+
     // Performance stats
     stats: {
-        totalUsers: {
+        totalUses: {
             type: Number,
             default: 0
             // How many times this talent was selected
@@ -77,13 +83,42 @@ talentStatsSchema.index(
 
 // Virtual: Calculate win rate
 talentStatsSchema.virtual('winRate').get(function() {
-    if (this.stats.totalUses === 0) return 0;
+    const totalMatches = this.stats.wins + this.stats.losses;
+    if (totalMatches === 0) return 0;
     return parseFloat(
-        ((this.stats.win / this.stats.totalUses) * 100).toFized(2)
+        ((this.stats.wins / totalMatches) * 100).toFixed(2)
     );
 });
 
-// Virtual: Calculate pick rate (calculated in controller relative to character picks)
+// Virtual: Calculate actual averages (running average)
+talentStatsSchema.virtual('avgKills').get(function() {
+    return this.stats.totalUses > 0
+        ? parseFloat((this.stats.avgKills / this.stats.totalUses).toFixed(2))
+        : 0;
+});
+talentStatsSchema.virtual('avgDeaths').get(function() {
+    return this.stats.totalUses > 0
+        ? parseFloat((this.stats.avgDeaths / this.stats.totalUses).toFixed(2))
+        : 0;
+});
+talentStatsSchema.virtual('avgAssists').get(function() {
+    return this.stats.totalUses > 0
+        ? parseFloat((this.stats.avgAssists / this.stats.totalUses).toFixed(2))
+        : 0;
+});
+talentStatsSchema.virtual('avgDamageDealt').get(function() {
+    return this.stats.totalUses > 0
+        ? parseFloat((this.stats.avgDamageDealt / this.stats.totalUses).toFixed(2))
+        : 0;
+});
+talentStatsSchema.virtual('avgDamageTaken').get(function() {
+    return this.stats.totalUses > 0
+        ? parseFloat((this.stats.avgDamageTaken / this.stats.totalUses).toFixed(2))
+        : 0;
+});
+
+
+// Include virtuals in JSON/Object output
 talentStatsSchema.set('toJSON', { virtuals: true });
 talentStatsSchema.set('toObject', { virtuals: true });
 

@@ -77,10 +77,38 @@ buildStatsSchema.index({ 'stats.wins': -1 });
 
 // Virtual: Win rate for this build
 buildStatsSchema.virtual('winRate').get(function() {
-    if (this.stats.totalUses === 0) return 0;
+    const totalMatches = this.stats.wins + this.stats.losses;
+    if (totalMatches === 0) return 0;
     return parseFloat(
-        ((this.stats.win / this.stats.totalUses) *100).toFixed(2)
+        ((this.stats.wins / totalMatches) *100).toFixed(2)
     );
+});
+
+// Virtual: Calculate actual averages (running average)
+talentStatsSchema.virtual('avgKills').get(function() {
+    return this.stats.totalUses > 0
+        ? parseFloat((this.stats.avgKills / this.stats.totalUses).toFixed(2))
+        : 0;
+});
+talentStatsSchema.virtual('avgDeaths').get(function() {
+    return this.stats.totalUses > 0
+        ? parseFloat((this.stats.avgDeaths / this.stats.totalUses).toFixed(2))
+        : 0;
+});
+talentStatsSchema.virtual('avgAssists').get(function() {
+    return this.stats.totalUses > 0
+        ? parseFloat((this.stats.avgAssists / this.stats.totalUses).toFixed(2))
+        : 0;
+});
+talentStatsSchema.virtual('avgDamageDealt').get(function() {
+    return this.stats.totalUses > 0
+        ? parseFloat((this.stats.avgDamageDealt / this.stats.totalUses).toFixed(2))
+        : 0;
+});
+talentStatsSchema.virtual('avgDamageTaken').get(function() {
+    return this.stats.totalUses > 0
+        ? parseFloat((this.stats.avgDamageTaken / this.stats.totalUses).toFixed(2))
+        : 0;
 });
 
 // Virtual: Usage rate (calculated relative to total character picks)

@@ -590,14 +590,108 @@ const getTalentBalanceData = async (req, res) => {
     try {
         const { gameMode = '1v1_ranked' } = req.query;
 
-        // This would use TalentStats model
-        // For now, return placeholder since we haven't implemented talent tracking in matches yet
+        let filter = { gameMode };
+        if (character) {
+            filter.character = character;
+        }
+
+        // Get all talent data
+        const talentData = await TalentStats.find(filter)
+            .populate('character', 'name')
+            .sort({ 'stats.totalUses': -1 });
+            
+        // Group by character
+        const byCharacter = {};
+
+        talentData.forEach(talent => {
+            const charName = talent.character.name;
+
+            if (!byCharacter[charName]) {
+                byCharacter[charName] = {
+                    character: charName,
+                    greaterTalents: [],
+                    lesserTalents: []
+                };
+            }
+
+            const talentInfo = {
+                name: talent.talentName,
+                uses: talent.stats.totalUses,
+                wins: talent.stats.wins,
+                losses: talent.stats.losses,
+                winRate: talent.winRate,
+                avgKills: talent.avgKills,
+                avgDeaths: talent.avgDeaths,
+                avgAssists: talent.avgAssists,
+                avgDamageDealt: talent.avgDamageDealt,
+                avgDamageTaken: talent.avgDamageTaken,
+                pickRate: 0 // will calculate below
+            };
+
+            if (talent.talentType === 'greater') {
+                byCharacter[charName].greaterTalents.push(talentInfo);
+            } else {
+                byCharacter[charName].lesserTalents.push(talentInfo);
+            }
+        });
+
+        // Calculate pick rates and flag dominant talents
+        for (const char of Object.values(byCharacter)) {
+            // Greater talents pick rate
+            const totalGreaterUses = char.greaterTalents.reduce((sum, t) => sum + t.uses, 0);
+            char.greaterTalents.forEach(t => {
+                t.pickRate = totalGreaterUses > 0
+                    ? Number(((t.uses / totalGreaterUses) * 100).toFixed(2))
+                    : 0;
+
+                // Flag if picked > 60% of the time
+                if (t.pickRate > 60) {
+                    t.flagged = true;
+                    t.flag = 'DOMINANT_TALENT';
+                    t.recommendation = `${t.name} has ${t.pickRate}% pick rate - consider nerfs or buff alternatives`;
+                }
+
+                // Flag high win rate
+                if (t.winRate > 60 && t.uses > 20) {
+                    t.flagged = true;
+                    t.flag = 'OVERPERFORMING';
+                    t.recommendation = `${t.name} has ${t.winRate}% win rate - likely too strong`;
+                }
+            });
+
+            // Lesser talents pick rate
+            // Note: Players can have up to 3 lesser talents, so total uses will be ~ 3x matches
+            const totalLesserUses = char.lesserTalents.reduce((sum, t) => sum + t.uses, 0);
+            char.lesserTalents.forEach(t => {
+                t.pickRate = totalLesserUses > 0
+                    ? Number(((t.uses / totalLesserUses) * 100).toFixed(2))
+                    : 0;
+
+                // Flag if picked > 50% of the time (lower threshold for lesser talents)
+                if (t.pickRate > 50) {
+                    t.flagged = true;
+                    t.flag = 'DOMINANT_TALENT';
+                    t.recommendation = `${t.name} has ${t.pickRate}% pick rate - consider nerfs or buff alternatives`;
+                }
+
+                // Flag high win rate
+                if (t.winRate > 60 && t.uses > 20) {
+                    t.flagged = true;
+                    t.flag = 'OVERPERFORMING';
+                    t.recommendation = `${t.name} has ${t.winRate}% win rate - likely too strong`;
+                }
+            });
+
+            // Sort by pick rate (most popular first)
+            char.greaterTalents.sort((a, b) => b.pickRate - a.pickRate);
+            char.lesserTalents.sort((a, b) => b.pickRate - a.pickRate);
+        }
+
         res.json({
             talentReport: {
                 generatedAt: new Date(),
                 gameMode,
-                message: 'Talent tracking will be implemented when match submission includes talent data',
-                note: 'TalentStats model is ready - needs match data to include talents field'
+                byCharacter: Object.values(byCharacter)
             }
         });
 
@@ -617,15 +711,88 @@ const getBuildBalanceData = async (req, res) => {
     try {
         const { gameMode = '1v1_ranked' } = req.query;
 
-        // This would use BuildStats model
-        // For now, return placeholder since we haven't implemented build tracking in matches yet
+        let filter = { gameMode };
+        if (character) {
+            filter.character = character;
+        }
+
+        // Get top builds
+        const buildData = await BuildStats.find(filter)
+            .populate('character', 'name')
+            .sort({ 'stats.totalUses': -1 })
+            .limit(parseInt(limit));
+
+        // Group by ccharacter
+        const byCharacter = {};
+
+        buildData.forEach(build => {
+            const charName = build.character.name;
+
+            if (!byCharacter[charName]) {
+                byCharacter[charName] = {
+                    character: charName,
+                    totalMatches: 0,
+                    topBuild: []
+                };
+            }
+
+            byCharacter[charName].totalMatches += build.stats.totalUses;
+            byCharacter[charName].topBuilds.push({
+                build: build.build,
+                uses: build.stats.totalUses,
+                wins: build.stats.wins,
+                losses: build.stats.losses,
+                winRate: build.winRate,
+                avgKills: build.stats.avgKills,
+                avgDeaths: build.stats.avgDeaths,
+                avgAssists: build.stats.avgAssists,
+                avgDamageDealt: build.stats.avgDamageDealt,
+                avgDamageTaken: build.stats.avgDamageTaken,
+                pickRate: 0 // will calculate below
+            });
+        });
+
+        // Calculate pick rates and diversity metrics
+        for (const char of Object.values(byCharacter)) {
+            // Calculate pick rates
+            char.topBuilds.forEach(build => {
+                build.pickRate = Number(((build.uses / char.totalMatches) * 100).toFixed(2));
+
+                // Flag dominant builds (>40% pick rate)
+                if (build.pickRate > 40) {
+                    build.flaggged = true;
+                    build.flag = 'DOMINANT_BUILD';
+                    build.recommendation = `This build has ${build.pickRate}% pick rate - meta is stale`;
+                }
+
+                // Flag overperforming builds (>60% win rate with significant sample)
+                if (build.winRate > 60 && build.uses > 20) {
+                    build.flagged = true;
+                    build.flag = 'OVERPERFORMING';
+                    build.recommendation = `${build.winRate.toFixed(1)}% win rate - likely too strong`;
+                }
+            });
+
+            // Calculate build diversity (Shannon entropy)
+            const pickRates = char.topBuilds.map(b => b.uses / char.totalMatches);
+            const diversity = -pickRates.reduce((sum, p) => {
+                return p > 0 ? sum + (p * Math.log2(p)) : sum;
+            }, 0);
+
+            char.buildDiversity = Number(diversity.toFixed(2));
+
+            // Flag low diversity
+            if (diversity < 1.5 && char.topBuilds.length > 3) {
+                char.diversityFlag = 'LOW_DIVERSITY';
+                char.diversityRecommendation = `Build diversity score ${diversity.toFixed(2)} is low - consider buffs to underused talents`;
+            }
+        }
 
         res.json({
             buildReport: {
                 generatedAt: new Date(),
                 gameMode,
-                message: 'Build tracking will be implemented when match submission includes talent data',
-                note: 'BuildStats model is ready - needs match data to include talents field'
+                byCharacter: Object.values(byCharacter)
             }
         });
 

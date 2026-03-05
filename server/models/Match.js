@@ -36,11 +36,15 @@ const matchSchema = new mongoose.Schema({
         },
         talents: {
             greater: {
-                type: mongoose.Schema.Types.ObjectId
+                type: String,
+                default: null
+                // name of talent and
+                // null if not unlocked
             },
             lesser: [{
-                type: mongoose.Schema.Types.ObjectId
+                type: String
             }]
+            // Array of lesser talent names (up to 3)
         },
         stats: {
             kills: {
