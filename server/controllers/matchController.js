@@ -120,8 +120,8 @@ const submitMatch = async (req, res) => {
                 // Get opponents for this player
                 const opponents = match.players.filter(p => p.team !== player.team);
 
-                // Need to fetch opponent PlayerStats to get their MMRs
-                const opponentStats = []; // initialize empty array
+                // Fetch opponent PlayerStats to get their MMRs
+                const opponentStats = [];
                 for (const opp of opponents) {
                     const oppStat = await PlayerStats.findOne({
                         user: opp.user,
@@ -129,14 +129,13 @@ const submitMatch = async (req, res) => {
                         gameMode: match.gameMode
                     });
 
-                    // Add to empty array
                     if (oppStat) {
                         opponentStats.push(oppStat);
                     }
                 }
 
-                // Calculate average opponent MMR
-                avgOpponentMMR = calculateAverageOpponentMMR(opponentStats);
+                // Calculate average opponent Account MMR (matchmaking is based on this)
+                avgOpponentAccountMMR = calculateAverageOpponentMMR(opponentStats);
 
                 // Calculate team average stats for performance bonus
                 const teamPlayers = match.players.filter(p => p.team === player.team);
@@ -153,33 +152,58 @@ const submitMatch = async (req, res) => {
                 const kFactor = playerStat.mmrUncertainty || 20;
 
                 // Calculate base MMR change
-                const baseMmrChange = calculateMMRChange(
-                    playerStat.mmr,
-                    avgOpponentMMR,
+                const accountMmrChange = calculateMMRChange(
+                    playerStat.accountMMR,
+                    avgOpponentAccountMMR,
                     player.result === 'win',
                     kFactor
                 );
 
-                // Total MMR change (base + performance)
-                const totalMmrChange = baseMmrChange + performanceBonus;
+                // Total Account MMR change (base + performance)
+                const totalAccountMmrChange = accountMmrChange + performanceBonus;
 
-                // Update MMR
-                playerStat.mmr += totalMmrChange;
-                playerStat.mmr = Math.max(0, playerStat.mmr)
+                // Update account MMR (affects all characters)
+                playerStat.accountMMR += totalAccountMmrChange;
+                playerStat.accountMMR = Math.max(0, playerStat.accountMMR)
 
-                // Update peak MMR if needed
-                if (playerStat.mmr > playerStat.peakMmr) {
-                    playerStat.peakMmr = playerStat.mmr;
+                // Update peak account MMR
+                if (playerStat.accountMMR > playerStat.peakAccountMMR) {
+                    playerStat.peakAccountMMR = playerStat.accountMMR;
                 }
+
+                // Calculate character-specific K-factor
+                let characterKFactor = kFactor;
+                if (playerStat.stats.totalMatches < 20) {
+                    characterKFactor = 30;
+                }
+
+                const characterMmrChange = calculateMMRChange(
+                    playerStat.characterMMR,
+                    avgOpponentAccountMMR,
+                    player.result === 'win',
+                    characterKFactor
+                );
+
+                // Character MMR gets bigger performance bonus (rewards mastery)
+                const totalCharacterMmrChange = characterMmrChange + (performanceBonus * 1.5);
+
+                // Update character MMR
+                playerStat.characterMMR += totalCharacterMmrChange;
+                playerStat.characterMMR += Math.max(0, playerStat.characterMMR);
+
+                // Update peak character MMR
+                if (playerStat.characterMMR > playerStat.peakCharacterMMR) {
+                    playerStat.peakCharacterMMR = playerStat.characterMMR;
+                }
+
+                // Update rank based on ACCOUNT MMR (for matchmaking)
+                const newRank = getRankFromMMR(playerStat.accountMMR);
+                playerStat.rank = newRank;
 
                 // Decrease uncertainty over time (placement matches)
                 if (playerStat.stats.totalMatches >= 10) {
                     playerStat.mmrUncertainty = Math.max(10, playerStat.mmrUncertainty - 0.5);
                 }
-
-                // Update visible rank based on new MMR
-                const newRank = getRankFromMMR(playerStat.mmr);
-                playerStat.rank = newRank;
 
                 // Save MMR changes
                 await playerStat.save();

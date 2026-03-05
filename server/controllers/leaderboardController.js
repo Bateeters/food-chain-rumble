@@ -21,17 +21,16 @@ const getLeaderboard = async (req, res) => {
             });
         }
 
-        // Build aggregation pipeline to get top stats per user
+        // Get top players by ACCOUNT MMR
         const leaderboard = await PlayerStats.aggregate([
             { $match: { gameMode } },
             {
                 $group: {
                     _id: '$user',
-                    // Take higheset MMR across all characters in this mode
-                    highestMMR: { $max: '$mmr' },
-                    peakMMR: { $max: '$peakMmr' },
-                    // Also get rank from highest MMR character
-                    bestRank: { $first: '$rank' },
+                    // Account MMR (same across all characters for this user)
+                    accountMMR: { $max: '$accountMMR' },
+                    peakAccountMMR: { $max: '$peakAccountMMR' },
+                    rank: { $first: '$rank' },
                     // Sum stats across all characters
                     totalMatches: { $sum: '$stats.totalMatches' },
                     totalWins: { $sum: '$stats.wins' },
@@ -39,13 +38,28 @@ const getLeaderboard = async (req, res) => {
                     totalKills: { $sum: '$stats.totalKills' },
                     totalDeaths: { $sum: '$stats.totalDeaths' },
                     totalAssists: { $sum: '$stats.totalAssists' },
+                    // Collect top characters (by Character MMR)
                     topCharacters: {
                         $push: {
                             character: '$character',
                             matches: '$stats.totalMatches',
                             wins: '$stats.wins',
-                            mmr: '$mmr',
-                            rank: '$rank'
+                            characterMMR: '$characterMMR',
+                            characterRank: {
+                                tier: {
+                                    $switch: {
+                                        branches: [
+                                            { case: { $gte: ['$characterMMR', 2300] }, then: 'Grandmaster' },
+                                            { case: { $gte: ['$characterMMR', 2300] }, then: 'Master' },
+                                            { case: { $gte: ['$characterMMR', 2300] }, then: 'Diamond' },
+                                            { case: { $gte: ['$characterMMR', 2300] }, then: 'Platinum' },
+                                            { case: { $gte: ['$characterMMR', 2300] }, then: 'Gold' },
+                                            { case: { $gte: ['$characterMMR', 2300] }, then: 'Silver' },
+                                        ],
+                                        default: 'Bronze'
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -76,8 +90,8 @@ const getLeaderboard = async (req, res) => {
                 }
             },
             
-            // SORT BY MMR (Highest First)
-            { $sort: { highestMMR: -1 } },
+            // SORT BY ACCOUNT MMR (what matters for overall rank)
+            { $sort: { accountMMR: -1 } },
             { $skip: (page -1) * limit },
             { $limit: parseInt(limit) }
         ]);
@@ -93,7 +107,7 @@ const getLeaderboard = async (req, res) => {
             entry.user = entry._id;
             delete entry._id;
 
-            entry.topCharacters.sort((a, b) => b.mmr - a.mmr);
+            entry.topCharacters.sort((a, b) => b.characterMMR - a.characterMMR);
             entry.topCharacters = entry.topCharacters.slice(0, 3);
         });
 
@@ -111,9 +125,9 @@ const getLeaderboard = async (req, res) => {
             leaderboard: leaderboard.map((entry, index) => ({
                 rank: (page - 1) * limit + index + 1,
                 user: entry.user,
-                mmr: entry.highestMMR,
-                peakMMR: entry.peakMMR,
-                rank: entry.bestRank, // Visible rank (Gold 2, etc...)
+                accountMMR: entry.accountMMR,
+                peakAccountMMR: entry.peakAccountMMR,
+                visibleRank: entry.rank, // Visible rank (Gold 2, etc...)
                 stats: {
                     totalMatches: entry.totalMatches,
                     wins: entry.totalWins,

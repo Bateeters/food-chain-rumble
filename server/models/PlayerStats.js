@@ -82,27 +82,29 @@ const playerStatsSchema = new mongoose.Schema({
     },
 
     // MMR System (Ranked modes only)
-    accountMmr: {
+    accountMMR: {
         type: Number,
         default: 1000,
-        win: 0
+        min: 0
         // Account-wide skill level
     },
 
-    characterMMRAdjustment: {
+    characterMMR: {
         type: Number,
-        default: -200,
-        min: -400,
-        max: 100
+        default: 1000,
+        min: 0
         // Character-specific modifier
-        // New characters: -200 (learning)
-        // Mastered characters: 0 to +100 (one-trick bonus)
     },
 
-    peakMmr: {
+    peakAccountMMR: {
         type: Number,
         default: 1000
         // Highest MMR ever achieved
+    },
+
+    peakCharacterMMR: {
+        type: Number,
+        default: 1000
     },
 
     // Visible rank tier (derived from MMR)
@@ -170,11 +172,6 @@ playerStatsSchema.virtual('avgDamagePerMatch').get(function() {
     if(this.stats.totalMatches === 0) return 0;
     return Math.round(this.stats.totalDamageDealt / this.stats.totalMatches);
 });
-
-// Virtual: CharacterMMR
-playerStatsSchema.virtual('characterMMR').get(function() {
-    return this.accountMMR + this.characterMMRAdjustment;
-})
 
 // Make sure virtuals are included when converting to JSON
 playerStatsSchema.set('toJSON', {virtuals: true});

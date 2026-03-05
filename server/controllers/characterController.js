@@ -301,7 +301,7 @@ const getCharacterStats = async (req, res) => {
 };
 
 // @route   GET /api/characters/:id/leaderboard
-// @desc    Get top players for a specific character
+// @desc    Get top players for a specific character (by character MMR)
 // @access  Public
 const getCharacterLeaderboard = async (req, res) => {
     try {
@@ -321,12 +321,15 @@ const getCharacterLeaderboard = async (req, res) => {
         let filter = { character: characterId };
         if (gameMode) {
             filter.gameMode = gameMode;
+        } else {
+            // Default to ranked modes only
+            filter.gameMode = { $in: ['1v1_ranked', '2v2_ranked', '3v3_ranked'] };
         }
 
-        // Get top players
+        // Get top players by CHARACTER MMR for this character
         const leaderboard = await PlayerStats.find(filter)
             .populate('user', 'username avatar')
-            .sort({ 'stats.wins': -1 })
+            .sort({ characterMMR: -1 })
             .limit(parseInt(limit));
 
         // Calculate total players
@@ -338,10 +341,14 @@ const getCharacterLeaderboard = async (req, res) => {
                 name: character.name,
                 image: character.image
             },
-            gameMode: gameMode || 'all',
+            gameMode: gameMode || 'all_ranked',
             leaderboard: leaderboard.map((stat, index) => ({
                 rank: index + 1,
                 user: stat.user,
+                characterMMR: stat.characterMMR,
+                peakCharacterMMR: stat.peakCharacterMMR,
+                accountMMR: stat.accountMMR, // for context
+                visibleRank: stat.rank, // their overall rank
                 stats: {
                     totalMatches: stat.stats.totalMatches,
                     wins: stat.stats.wins,
@@ -362,6 +369,102 @@ const getCharacterLeaderboard = async (req, res) => {
     }
 };
 
+// @route   GET /api/characters/:id/leaderboard/rank/:userId
+// @desc    Get user's rank on a specific character
+// @access  Public
+const getCharacterLeaderboardRank = async (req, res) => {
+    try {
+        const { id: characterId, userId } = req.params;
+        const { gameMode } = req.query;
+
+        // Get character
+        const character = await Character.findById(characterId);
+
+        if (!character) {
+            return res.status(404).json({
+                error: 'Character not found'
+            });
+        }
+
+        // Build filter
+        let filter = {
+            character: characterId,
+            user: userId
+        };
+
+        if (gameMode) {
+            filter.gameMode = gameMode;
+        } else {
+            // Default to ranked modes
+            filter.gameMode = { $in: ['1v1_ranked', '2v2_ranked', '3v3_ranked'] };
+        }
+
+        // Get user's stats for this character
+        const userStats = await PlayerStats.findOne(filter)
+            .populate('user', 'username avatar');
+
+        if (!userStats) {
+            return res.status(404).json({
+                error: 'User has no stats for this character in ranked modes'
+            });
+        }
+
+        // Calculate rank (count how many players have higher character MMR)
+        let rankFilter = { character: characterId };
+        if (gameMode) {
+            rankFilter.gameMode = gameMode;
+        } else {
+            rankFilter.gameMode = { $in: ['1v1_ranked', '2v2_ranked', '3v3_ranked'] };
+        }
+
+        const playersAbove = await PlayerStats.countDocuments({
+            ...rankFilter,
+            characterMMR: { $gt: userStats.characterMMR }
+        });
+
+        const rank = playersAbove + 1;
+
+        // Get total players for this character
+        const totalPlayers = await PlayerStats.countDocuments(rankFilter);
+
+        // Calculate percentile
+        const percentile = totalPlayers > 0
+            ? ((1 - (rank - 1) / totalPlayers) * 100).toFixed(2)
+            : 0;
+
+        res.json({
+            character: {
+                _id: character._id,
+                name: character.name,
+                image: character.image
+            },
+            gameMode: gameMode || 'all_ranked',
+            user: userStats.user,
+            rank,
+            totalPlayers,
+            percentile,
+            characterMMR: userStats.characterMMR,
+            accountMMR: userStats.accountMMR,
+            visibleRank: userStats.rank,
+            stats: {
+                totalMatches: userStats.stats.totalMatches,
+                win: userStats.stats.wins,
+                losses: userStats.stats.losses,
+                winRate: userStats.winRate,
+                kdRatio: userStats.kdRatio,
+                totalAssists: userStats.totalAssists
+            }
+        });
+
+    } catch (error) {
+        console.error('Get user character rank error:', error);
+        res.status(500).json({
+            error: 'Error fetching user character rank',
+            details: error.message
+        });
+    }
+};
+
 module.exports = {
     getAllCharacters,
     getCharacterById,
@@ -369,5 +472,6 @@ module.exports = {
     updateCharacter,
     deleteCharacter,
     getCharacterStats,
-    getCharacterLeaderboard
+    getCharacterLeaderboard,
+    getCharacterLeaderboardRank
 };

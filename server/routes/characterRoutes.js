@@ -9,7 +9,8 @@ const {
     updateCharacter,
     deleteCharacter,
     getCharacterStats,
-    getCharacterLeaderboard
+    getCharacterLeaderboard,
+    getCharacterLeaderboardRank
 } = require('../controllers/characterController');
 
 // Import middleware
@@ -49,5 +50,10 @@ router.get('/:id/stats', getCharacterStats);
 // @desc    Get top players for a specific character
 // @access  Public
 router.get('/:id/leaderboard', getCharacterLeaderboard);
+
+// @route   GET /api/characters/:id/leaderboard/rank/:userId
+// @desc    Get user's rank on a specific character
+// @access  Public
+router.get('/:id/leaderboard/rank/:userId', getCharacterLeaderboardRank);
 
 module.exports = router;
