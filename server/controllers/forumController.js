@@ -491,3 +491,69 @@ const getCommentsForPost = async (req, res) => {
     }
 };
 
+// @route   POST /api/forum/posts/:postId/comments
+// @desc    Create a comment on a post
+// @access  Private
+const createComment = async (req, res) => {
+    try {
+        const { postId } = req.params;
+        const { content, parentCommentId } = req.body;
+
+        // Validation
+        if (!content) {
+            return res.status(400).json({
+                error: 'Content is required'
+            });
+        }
+
+        // Check if post exists
+        const post = await ForumPost.findById(postId);
+        if (!post) {
+            return res.status(404).json({
+                error: 'Post not found'
+            });
+        }
+
+        // Check if post is locked
+        if (post.isLocked) {
+            return res.status(403).json({
+                error: 'Post is locked. Cannot add coments.'
+            });
+        }
+
+        // If repllying to a comment, verify parent exists
+        if (parentCommentId) {
+            const parentComment = await Comment.findById(parentCommentId);
+            if (!parentComment) {
+                return res.status(404).json({
+                    error: 'Parent comment not found'
+                });
+            }
+        }
+
+        const comment = await Comment.create({
+            post: postId,
+            author: req.user.id,
+            content,
+            parentComment: parentCommentId || null
+        });
+
+        // Update post comment count
+        post.commentCount += 1;
+        await post.save();
+
+        await comment.populate('author', 'username avatar');
+
+        res.status(201).json({
+            message: 'Comment created successfully',
+            comment
+        });
+
+    } catch (error) {
+        console.error('Create comment error:', error);
+        res.status(500).json({
+            error: 'Error creating comment',
+            details: error.message
+        });
+    }
+};
