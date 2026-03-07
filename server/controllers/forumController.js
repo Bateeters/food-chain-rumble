@@ -277,11 +277,11 @@ const createPost = async (req, res) => {
 // @desc    Update a post
 // @access  Private (author)
 
-/* =========================================================
-* Commented out Admin/moderator if we want to re-implement.
-* If admin/mod have to edit, author should be notified and
-* post should be flagged and/or taken down instead.
-========================================================= */
+// =========================================================
+// Commented out Admin/moderator if we want to re-implement.
+// If admin/mod have to edit, author should be notified and
+// post should be flagged and/or taken down instead.
+// =========================================================
 const updatePost = async (req, res) => {
     try {
         const { title, content } = req.body;
@@ -432,6 +432,60 @@ const toggleLockPost = async (req, res) => {
         console.error('Toggle lock post error:', error);
         res.status(500).json({
             error: 'Error toggling lock status',
+            details: error.message
+        });
+    }
+};
+
+// =========================================================
+// COMMENT CONTROLLERS
+// =========================================================
+
+// @route   GET /api/forum/posts/:postId/comments
+// @desc    Get comments for a post
+// @access  Public
+const getCommentsForPost = async (req, res) => {
+    try {
+        const { postId } = req.params;
+        const { page = 1, limit = 50 } = req.query;
+
+        // Get top-level comments (no parent)
+        const comments = await Comment.find({
+            post: postId,
+            parentComment: null
+        })
+            .populate('author', 'username avatar')
+            .sort({ createdAt: 1 })
+            .limit(limit * 1)
+            .skip((page - 1) * limit);
+        
+        // Get replies for each comment (one level deep)
+        for (let comment of comments) {
+            const replies = await Comment.find({ parentComment: comment._id })
+                .populate('author', 'username avatar')
+                .sort({ createdAt: 1 });
+            comment._doc.replies = replies;
+        }
+
+        const total = await Comment.countDocuments({
+            post: postId,
+            parentComment: null
+        });
+
+        res.json({
+            comments,
+            pagination: {
+                page: Number(page),
+                limit: Number(limit),
+                total,
+                pages: Math.ceil(total / limit)
+            }
+        });
+
+    } catch (error) {
+        console.error('Get comments for post error:', error);
+        res.status(500).json({
+            error: 'Error fetching comments',
             details: error.message
         });
     }
