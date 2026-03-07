@@ -50,11 +50,11 @@ const getLeaderboard = async (req, res) => {
                                     $switch: {
                                         branches: [
                                             { case: { $gte: ['$characterMMR', 2300] }, then: 'Grandmaster' },
-                                            { case: { $gte: ['$characterMMR', 2300] }, then: 'Master' },
-                                            { case: { $gte: ['$characterMMR', 2300] }, then: 'Diamond' },
-                                            { case: { $gte: ['$characterMMR', 2300] }, then: 'Platinum' },
-                                            { case: { $gte: ['$characterMMR', 2300] }, then: 'Gold' },
-                                            { case: { $gte: ['$characterMMR', 2300] }, then: 'Silver' },
+                                            { case: { $gte: ['$characterMMR', 2000] }, then: 'Master' },
+                                            { case: { $gte: ['$characterMMR', 1800] }, then: 'Diamond' },
+                                            { case: { $gte: ['$characterMMR', 1600] }, then: 'Platinum' },
+                                            { case: { $gte: ['$characterMMR', 1400] }, then: 'Gold' },
+                                            { case: { $gte: ['$characterMMR', 1200] }, then: 'Silver' },
                                         ],
                                         default: 'Bronze'
                                     }
@@ -84,7 +84,7 @@ const getLeaderboard = async (req, res) => {
                         $cond: [
                             { $gt: ['$totalMatches', 0] },
                             { $divide: ['$totalAssists', '$totalMatches'] },
-                            '$totalAssists'
+                            0
                         ]
                     }
                 }
@@ -709,7 +709,7 @@ const getTalentBalanceData = async (req, res) => {
 // @access  Private/Admin
 const getBuildBalanceData = async (req, res) => {
     try {
-        const { gameMode = '1v1_ranked' } = req.query;
+        const { gameMode = '1v1_ranked', character, limit = 50 } = req.query;
 
         let filter = { gameMode };
         if (character) {
@@ -722,7 +722,7 @@ const getBuildBalanceData = async (req, res) => {
             .sort({ 'stats.totalUses': -1 })
             .limit(parseInt(limit));
 
-        // Group by ccharacter
+        // Group by character
         const byCharacter = {};
 
         buildData.forEach(build => {
