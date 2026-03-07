@@ -273,3 +273,58 @@ const createPost = async (req, res) => {
     }
 };
 
+// @route   PUT /api/forum/posts/:id
+// @desc    Update a post
+// @access  Private (author)
+
+/* =========================================================
+* Commented out Admin/moderator if we want to re-implement.
+* If admin/mod have to edit, author should be notified and
+* post should be flagged and/or taken down instead.
+========================================================= */
+const updatePost = async (req, res) => {
+    try {
+        const { title, content } = req.body;
+
+        const post = await ForumPost.findById(req.params.id);
+
+        if (!post) {
+            return res.status(404).json({
+                error: 'Post not found'
+            });
+        }
+
+        // Check authorization (author)
+        const isAuthor = post.author.toString() === req.user.id;
+        /* Check authorization (admin/mod)
+        const isAdminOrMod = req.user.role === 'admin' || req.user.role === 'moderator';
+        */
+
+        if (!isAuthor /*&& !isAdminOrMod*/) {
+            return res.status(403).json({
+                error: 'Not authorized to edit this post'
+            });
+        }
+
+        // Update fields
+        if (title) post.title = title;
+        if (content) post.content = content;
+        post.isEdited = true;
+
+        await post.save();
+        await post.populate('author', 'username avatar');
+        await post.populate('board', 'name slug');
+
+        res.json({
+            message: 'Post updated seccessfully',
+            post
+        });
+
+    } catch (error) {
+        console.error('Update post error:', error);
+        res.status(500).json({
+            error: 'Error updating post',
+            details: error.message
+        });
+    }
+};
