@@ -614,3 +614,52 @@ const updateComment = async (req, res) => {
     }
 };
 
+// @route   DELETE /api/forum/comments/:id
+// @desc    Delete a comment
+// @access  Private (author or admin/mod)
+const deleteComment = async (req, res) => {
+    try {
+        const comment = await Comment.findById(req.params.id);
+
+        if (!comment) {
+            return res.status(404).json({
+                error: 'Comment not found'
+            });
+        }
+
+        // Check authorization
+        const isAuthor = comment.author.toString() === req.user.id;
+        const isAdminOrMod = req.user.role === 'admin' || req.user.role === 'moderator';
+
+        if (!isAuthor && !isAdminOrMod) {
+            return res.status(403).json({
+                error: 'Not authorized to delete this comment'
+            });
+        }
+
+        // Delete all replies to this comment
+        await Comment.deleteMany({ parentComment: comment._id });
+
+        // Update post comment count
+        const post = await ForumPost.findById(comment.post);
+        if (post) {
+            // Count how many comments are being deleted (this comment + all replies)
+            const replyCount = await Comment.countDocuments({ parentComment: comment._id });
+            post.commentCount = Math.max(0, post.commentCount - (1 + replyCount));
+            await post.save();
+        }
+
+        await comment.deletedAt();
+
+        res.json({
+            message: 'Comment deleted successfully'
+        });
+
+    } catch (error) {
+        console.error('Delete comment error:', error);
+        res.status(500).json({
+            error: 'Error deleting comment',
+            details: error.message
+        });
+    }
+};
