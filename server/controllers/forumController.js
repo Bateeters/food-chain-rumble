@@ -663,3 +663,88 @@ const deleteComment = async (req, res) => {
         });
     }
 };
+
+// =========================================================
+// VOTING CONTROLLERS
+// =========================================================
+
+// @route   POST /api/forum/posts/:id/vote
+// @desc    Upvote/downvote a post
+// @access  Private
+const votePost = async (req, res) => {
+    try {
+        const { voteType } = req.body; // up or downvote
+
+        if (!['upvote', 'downvote'].includes(voteType)) {
+            return res.status(400).json({
+                error: 'Invalid vote type. Must be "upvote" or "downvote"'
+            });
+        }
+
+        const post = await ForumPost.findById(req.params.id);
+
+        if (!post) {
+            return res.status(404).json({
+                error: 'Post not found'
+            });
+        }
+
+        const userId = req.user.id;
+
+        // Check if user already voted
+        const hasUpvoted = post.upvotedBy.includes(userId);
+        const hasDownvoted = post.downvotedBy.includes(userId);
+
+        if (voteType === 'upvote') {
+            if (hasUpvoted) {
+                // Remove upvote
+                post.upvotedBy.pull(userId);
+                post.upvotes -= 1;
+            } else {
+                // Add upvote
+                post.upvotedBy.push(userId);
+                post.upvotes += 1;
+                // Remove downvote if exists
+                if (hasDownvoted) {
+                    post.downvotedBy.pull(userId);
+                    post.downvotes -= 1;
+                }
+            }
+        } else {
+            // downvote
+            if (hasDownvoted) {
+                // Remove downvote
+                post.downvotedBy.pull(userId);
+                post.downvotes -= 1;
+            } else {
+                // Add downvote
+                post.downvotedBy.push(userId);
+                post.downvotes += 1;
+                // Remove upvote if exists
+                if (hasUpvoted) {
+                    post.upvotedBy.pull(userId);
+                    post.upvotes -= 1;
+                }
+            }
+        }
+
+        await post.save();
+
+        res.json({
+            message: 'Vote registered successfully',
+            upvotes: post.upvotes,
+            downvotes: post.downvotes,
+            userVote: 
+                post.upvotedBy.includes(userId) ? 'upvote' :
+                post.downvotedBy.includes(userId) ? 'downvote' : null
+        });
+
+    } catch (error) {
+        console.error('Vote post error:', error);
+        res.status(500).json({
+            error: 'Error voting on post',
+            details: error.message
+        });
+    }
+};
+
