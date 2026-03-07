@@ -376,3 +376,33 @@ const deletePost = async (req, res) => {
         });
     }
 };
+
+// @route   PATCH /api/forum/posts/:id/pin
+// @desc    Pin/unpin a post (Moderator/Admin only)
+// @access  Private/Admin/Moderator
+const togglePinPost = async (req, res) => {
+    try {
+        const post = await ForumPost.findById(req.params.id);
+
+        if (!post) {
+            return res.status(404).json({
+                error: 'Post not found'
+            });
+        }
+
+        post.isPinned = !post.isPinned;
+        await post.save();
+
+        res.json({
+            message: `Post ${post.isPinned ? 'pinned' : 'unpinned'} successfully`,
+            isPinned: post.isPinned
+        });
+
+    } catch (error) {
+        console.error('Toggle pin post error:', error);
+        res.status(500).json({
+            error: 'Error toggling pin status',
+            details: error.message
+        });
+    }
+};
