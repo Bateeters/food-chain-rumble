@@ -184,3 +184,33 @@ const getPostsInBoard = async (req, res) => {
         });
     }
 };
+
+// @route   GET /api/forum/posts/:id
+// @desc    Get a single post by ID
+// @access  Public
+const getPostById = async (req, res) => {
+    try {
+        const post = await ForumPost.findById(req.params.id)
+            .populate('author', 'username avatar')
+            .populate('board', 'name slug');
+
+        if (!post) {
+            return res.status(404).json({
+                error: 'Post not found'
+            });
+        }
+
+        // Increment view count
+        post.viewCount += 1;
+        await post.save();
+
+        res.json({ post });
+
+    } catch (error) {
+        console.error('Get post by ID error:', error);
+        res.status(500).json({
+            error: 'Error fetching post',
+            details: error.message
+        });
+    }
+};
