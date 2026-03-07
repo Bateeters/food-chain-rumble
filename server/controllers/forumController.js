@@ -748,3 +748,75 @@ const votePost = async (req, res) => {
     }
 };
 
+// @route   POST /api/forum/comments/:id/vote
+// @desc    Upvote/downvote a comment
+// @access  Private
+const voteComment = async (req, res) => {
+    try {
+        const { voteType } = req.body;
+
+        if (!['upvote', 'downvote'].includes(voteType)) {
+            return res.status(400).json({
+                error: 'Invalid vote type. Must be "upvote" or "downvote"'
+            });
+        }
+
+        const comment = await Comment.findById(req.params.id);
+
+        if (!comment) {
+            return res.status(404).json({
+                error: 'Comment not found'
+            });
+        }
+
+        const userId = req.user.id;
+
+        const hasUpvoted = comment.upvotedBy.includes(userId);
+        const hasDownvoted = comment.downvotedBy.includes(userId);
+
+        if (voteType === 'upvote') {
+            if (hasUpvoted) {
+                comment.upvotedBy.pull(userId);
+                comment.upvotes -= 1;
+            } else {
+                comment.upvotedBy.push(userId);
+                comment.upvotes += 1;
+                if (hasDownvoted) {
+                    comment.downvotedBy.pull(userId);
+                    comment.downvotes -= 1;
+                }
+            }
+        } else {
+            if (hasDownvoted) {
+                comment.downvotedBy.pull(userId);
+                comment.downvotes -= 1;
+            } else {
+                comment.downvotedBy.push(userId);
+                comment.downvotes += 1;
+                if (hasUpvoted) {
+                    comment.upvotedBy.pull(userId);
+                    comment.upvotes -= 1;
+                }
+            }
+        }
+
+        await comment.save();
+
+        res.json({
+            message: 'Vote registered successfully',
+            upvotes: comment.upvotes,
+            downvotes: comment.downvotes,
+            userVote: 
+                comment.upvotedBy.includes(userId) ? 'upvote' :
+                comment.downvotedBy.includes(userId) ? 'downvote' : null
+        });
+
+    } catch (error) {
+        console.error('Vote comment error:', error);
+        res.status(500).json({
+            error: 'Error voting on comment',
+            details: error.message
+        });
+    }
+};
+
