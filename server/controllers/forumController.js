@@ -328,3 +328,51 @@ const updatePost = async (req, res) => {
         });
     }
 };
+
+// @route   DELETE /api/forum/post/:id
+// @desc    Delete a post
+// @access  Private (author or admin/moderator)
+const deletePost = async (req, res) => {
+    try {
+        const post = await ForumPost.findById(req.params.id);
+
+        if (!post) {
+            return res.status(404).json({
+                error: 'Post not found'
+            });
+        }
+
+        // Check authorization
+        const isAuthor = post.author.toString() === req.user.id;
+        const isAdminOrMod = req.user.role === 'admin' || req.user.role === 'moderator';
+
+        if (!isAuthor && !isAdminOrMod) {
+            return res.status(403).json({
+                error: 'Not authorized to delete this post'
+            });
+        }
+
+        // Delete all comments on this post
+        await Comment.deleteMany({ post: post._id });
+
+        // Update board stats
+        const board = await ForumBoard.findById(post.board);
+        if (board) {
+            board.postCount = Math.max(0, board.postCount -1);
+            await board.save();
+        }
+
+        await post.deleteOne();
+
+        res.json({
+            message: 'Post deleted successfully'
+        });
+
+    } catch (error) {
+        console.error('Delete post error:', error);
+        res.status(500).json({
+            error: 'Error deleting post',
+            details: error.message
+        });
+    }
+};
