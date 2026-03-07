@@ -282,6 +282,7 @@ const createPost = async (req, res) => {
 // If admin/mod have to edit, author should be notified and
 // post should be flagged and/or taken down instead.
 // =========================================================
+
 const updatePost = async (req, res) => {
     try {
         const { title, content } = req.body;
@@ -557,3 +558,59 @@ const createComment = async (req, res) => {
         });
     }
 };
+
+// @route   PUT /api/forum/comments/:id
+// @desc    Update a comment
+// @access  Private (author)
+
+// =========================================================
+// Commented out Admin/moderator if we want to re-implement.
+// If admin/mod have to edit, author should be notified and
+// comment should be flagged and/or taken down instead.
+// =========================================================
+
+const updateComment = async (req, res) => {
+    try {
+        const { content } = req.body;
+
+        const comment = await Comment.findById(req.params.id);
+
+        if (!comment) {
+            return res.status(404).json({
+                error: 'Comment not found'
+            });
+        }
+        
+        // Check authorization
+        const isAuthor = comment.author.toString() === req.user.id;
+
+        /* Check authorization (admin/mod)
+        const isAdminOrMod = req.user.role === 'admin' || req.user.role === 'moderator';
+        */
+
+        if (!isAuthor /*&& !isAdminOrMod*/) {
+            return res.status(403).json({
+                error: 'Not authorized to edit this comment'
+            });
+        }
+
+        comment.content = content;
+        comment.isEdited = true;
+        await comment.save();
+
+        await comment.populate('author', 'username avatar');
+
+        res.json({
+            message: 'Comment updated successfully',
+            comment
+        });
+
+    } catch (error) {
+        console.error('Update comment error:', error);
+        res.status(500).json({
+            error: 'Error updating coment',
+            details: error.message
+        });
+    }
+};
+
