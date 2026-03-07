@@ -820,3 +820,29 @@ const voteComment = async (req, res) => {
     }
 };
 
+module.exports = {
+    // Board controllers
+    getAllBoards,
+    createBoard,
+    updateBoard,
+    deleteBoard,
+
+    // Post controllers
+    getPostsInBoard,
+    getPostById,
+    createPost,
+    updatePost,
+    deletePost,
+    togglePinPost,
+    toggleLockPost,
+
+    // Comment controllers
+    getCommentsForPost,
+    createComment,
+    updateComment,
+    deleteComment,
+
+    // Voting controllers
+    votePost,
+    voteComment
+};
