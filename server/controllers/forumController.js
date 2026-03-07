@@ -214,3 +214,62 @@ const getPostById = async (req, res) => {
         });
     }
 };
+
+// @route   POST /api/forum/boards/:boardId/posts
+// @desc    Create a new post
+// @access  Private
+const createPost = async (req, res) => {
+    try {
+        const { boardId } = req.params;
+        const { title, content } = req.body;
+
+        // Validation
+        if (!title || !content) {
+            return res.status(400).json({
+                error: 'Title and content are required'
+            });
+        }
+
+        // Check if board exists
+        const board = await ForumBoard.findById(boardId);
+        if (!board) {
+            return res.status(404).json({
+                error: 'Forum board not found'
+            });
+        }
+
+        const post = await ForumPost.create({
+            board: boardId,
+            author: req.user.id,
+            title,
+            content
+        });
+
+        // Update board stats
+        board.postCound += 1;
+        board.latestPost = {
+            _id: post._id,
+            title: post.title,
+            author: req.user.id,
+            createdAt: post.createdAt
+        };
+        await board.save();
+
+        // Populate author info
+        await post.populate('author', 'username avatar');
+        await post.populate('board', 'name slug');
+
+        res.status(201).json({
+            message: 'Post created successfully',
+            post
+        });
+
+    } catch (error) {
+        console.error ('Create post error:', error);
+        res.status(500).json({
+            error: 'Error creating post',
+            details: error.message
+        });
+    }
+};
+
