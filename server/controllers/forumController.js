@@ -406,3 +406,34 @@ const togglePinPost = async (req, res) => {
         });
     }
 };
+
+// @route   PATCH /api/forum/posts/:id/lock
+// @desc    Lock/unlock a post (Moderator/Admin only)
+// @access  Private/Moderator/Admin
+const toggleLockPost = async (req, res) => {
+    try {
+        const post = await ForumPost.findById(req.params.id);
+
+        if(!post) {
+            return res.status(404).json({
+                error: 'Post not found'
+            });
+        }
+
+        post.isLocked = !post.isLocked;
+        await post.save();
+
+        res.json({
+            message: `Post ${post.isLocked ? 'locked' : 'unlocked'} successfully`,
+            isLocked: post.isLocked
+        });
+
+    } catch (error) {
+        console.error('Toggle lock post error:', error);
+        res.status(500).json({
+            error: 'Error toggling lock status',
+            details: error.message
+        });
+    }
+};
+
