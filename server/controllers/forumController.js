@@ -317,7 +317,7 @@ const updatePost = async (req, res) => {
         await post.populate('board', 'name slug');
 
         res.json({
-            message: 'Post updated seccessfully',
+            message: 'Post updated successfully',
             post
         });
 
@@ -518,11 +518,11 @@ const createComment = async (req, res) => {
         // Check if post is locked
         if (post.isLocked) {
             return res.status(403).json({
-                error: 'Post is locked. Cannot add coments.'
+                error: 'Post is locked. Cannot add comments.'
             });
         }
 
-        // If repllying to a comment, verify parent exists
+        // If replying to a comment, verify parent exists
         if (parentCommentId) {
             const parentComment = await Comment.findById(parentCommentId);
             if (!parentComment) {
@@ -608,7 +608,7 @@ const updateComment = async (req, res) => {
     } catch (error) {
         console.error('Update comment error:', error);
         res.status(500).json({
-            error: 'Error updating coment',
+            error: 'Error updating comment',
             details: error.message
         });
     }
