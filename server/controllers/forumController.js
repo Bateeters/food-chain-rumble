@@ -33,6 +33,42 @@ const getAllBoards = async (req, res) => {
     }
 };
 
+// @route   GET /api/forum/boards/:slug
+// @desc    Get a board by its slug
+// @access  Public
+const getBoardBySlug = async (req, res) => {
+    try {
+        const { slug } = req.params;
+
+        const board = await ForumBoard.findOne({ slug });
+
+        if (!board) {
+            return res.status(404).json({
+                error: 'Forum board not found'
+            });
+        }
+
+        res.json({
+            board: {
+                _id: board._id,
+                name: board.name,
+                description: board.description,
+                slug: board.slug,
+                order: board.order,
+                postCount: board.postCount,
+                latestPost: board.latestPost
+            }
+        });
+
+    } catch (error) {
+        console.error('Get board by slug error:', error);
+        res.status(500).json({
+            error: 'Error fetching forum board',
+            details: error.message
+        });
+    }
+};
+
 // @route   POST /api/forum/boards
 // @desc    Create a new forum board (Admin only)
 // @access  Private/Admin
@@ -820,9 +856,125 @@ const voteComment = async (req, res) => {
     }
 };
 
+// =========================================================
+// FLAGGING/REPORTING CONTROLLERS
+// =========================================================
+
+// @route   POST /api/forum/posts/:id/flag
+// @desc    Flag a post for moderation
+// @access  Private
+
+const flagPost = async (req, res) => {
+    try {
+        const { reason } = req.body;
+
+        if (!reason) {
+            return res.status(400).json({
+                error: 'Reason is required'
+            });
+        }
+
+        const post = await ForumPost.findById(req.params.id);
+
+        if (!post) {
+            return res.status(404).json({
+                error: 'Post not found'
+            });
+        }
+
+        // Check if user already flagged this post
+        const alreadyFlagged = post.flags.some(
+            flag => flag.reporter.toString() === req.user.id
+        );
+
+        if (alreadyFlagged) {
+            return res.status(400).json({
+                error: 'You have already flagged this post'
+            });
+        }
+
+        // Add flag
+        post.flags.push({
+            reporter: req.user.id,
+            reason,
+            reportedAt: new Date()
+        });
+
+        await post.save();
+
+        res.json({
+            message: 'Post flagged successfully',
+            flagCount: post.flags.length
+        });
+
+    } catch (error) {
+        console.error('Flag post error:', error);
+        res.status(500).json({
+            error: 'Error flagging post',
+            details: error.message
+        });
+    }
+};
+
+// @route   POST /api/forum/comments/:id/flag
+// @desc    Flag a comment for moderation
+// @access  Private
+const flagComment = async (req, res) => {
+    try {
+        const { reason } = req.body;
+
+        if (!reason) {
+            return res.status(400).json({
+                error: 'Reason is required'
+            });
+        }
+
+        const comment = await Comment.findById(req.params.id);
+
+        if (!comment) {
+            return res.status(404).json({
+                error: 'Comment not found'
+            });
+        }
+
+        // Check if user already flagged this comment
+        const alreadyFlagged = comment.flags.some(
+            flag => flag.reporter.toString() === req.user.id
+        );
+
+        if (alreadyFlagged) {
+            return res.status(400).json({
+                error: 'You have already flagged this comment'
+            });
+        }
+
+        // Add flag
+        comment.flags.push({
+            reporter: req.user.id,
+            reason,
+            reportedAt: new Date()
+        });
+
+        await comment.save();
+
+        res.json({
+            message: 'Comment flagged successfully',
+            flagCount: comment.flags.length
+        });
+
+    } catch (error) {
+        console.error('Flag comment error:', error);
+        res.status(500).json({
+            error: 'Error flagging comment',
+            details: error.message
+        });
+    }
+};
+
 module.exports = {
     // Board controllers
     getAllBoards,
+    getBoardBySlug,
     createBoard,
     updateBoard,
     deleteBoard,
@@ -844,5 +996,9 @@ module.exports = {
 
     // Voting controllers
     votePost,
-    voteComment
+    voteComment,
+
+    // Flagging controllers
+    flagPost,
+    flagComment
 };

@@ -125,4 +125,16 @@ const isModerator = (boardId) => {
     };
 };
 
-module.exports = {protect, isAdmin, isModerator };
+// Check if user is moderator or admin (simple role check)
+const isModeratorOrAdmin = (req, res, next) => {
+    // protect middleware must run first - it sets req.user
+    if (req.user && (req.user.role === 'moderator' || req.user.role === 'admin')) {
+        next(); // User is moderator or admin, continue
+    } else {
+        res.status(403).json({
+        error: 'Access denied. Moderator or admin privileges required.'
+        });
+    }
+};
+
+module.exports = {protect, isAdmin, isModerator, isModeratorOrAdmin };

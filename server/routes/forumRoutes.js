@@ -11,25 +11,32 @@ const {
     deleteBoard,
 
     // Post controllers
-    getPostsByBoard,
+    getPostsInBoard,
     getPostById,
     createPost,
     updatePost,
     deletePost,
-    voteOnPost,
-    flagPost,
-
+    togglePinPost,
+    toggleLockPost,
+  
     // Comment controllers
-    getCommentsByPost,
+    getCommentsForPost,
     createComment,
     updateComment,
     deleteComment,
-    voteOnComment,
+    
+    // Voting controllers
+    votePost,
+    voteComment,
+    
+    // Flagging controllers
+    flagPost,
     flagComment
+
 } = require('../controllers/forumControllers');
 
 // Import middleware
-const { protect, isAdmin } = require('../middleware/auth');
+const { protect, isAdmin, isModerator, isModeratorOrAdmin } = require('../middleware/auth');
 
 // ======================
 // BOARD ROUTES
@@ -43,7 +50,7 @@ router.get('/boards', getAllBoards);
 // @route   POST /api/forum/boards
 // @desc    Create a new forum board (admin only)
 // @access  Private/Admin
-route.post('/boards', protect, isAdmin, createBoard)
+router.post('/boards', protect, isAdmin, createBoard)
 
 // @route   GET /api/forum/boards/:slug
 // @desc    Get a board by its slug
@@ -67,7 +74,7 @@ router.delete('/boards/:id', protect, isAdmin, deleteBoard);
 // @route   GET /api/forum/boards/:boardId/posts
 // @desc    Get all post in a board (with sorting/filtering)
 // @access  Public
-router.get('/boards/:boardId/posts', getPostsByBoard);
+router.get('/boards/:boardId/posts', getPostsInBoard);
 
 // @route   POST /api/forum/boards/:boardId/posts
 // @desc    Create a new post in a board
@@ -92,12 +99,22 @@ router.delete('/posts/:id', protect, deletePost);
 // @route   POST /api/forum/posts/:id/vote
 // @desc    Vote on a post (upvote or downvote)
 // @access  Private
-router.post('/posts/:id/vote', protect, voteOnPost);
+router.post('/posts/:id/vote', protect, votePost);
 
 // @route   POST /api/forum/posts/:id/flag
 // @desc    Flag a post for moderation
 // @access  Private
 router.post('/posts/:id/flag', protect, flagPost);
+
+// @route   PATCH /api/forum/posts/:id/pin
+// @desc    Pin/unpin a post
+// @access  Private/Moderator/Admin
+router.patch('/posts/:id/pin', protect, isModeratorOrAdmin, togglePinPost);
+
+// @route   PATCH /api/forum/posts/:id/lock
+// @desc    Lock/unlock a post
+// @access  Private/Moderator/Admin
+router.patch('/posts/:id/lock', protect, isModeratorOrAdmin, toggleLockPost);
 
 // =====================
 // COMMENT ROUTES
@@ -106,7 +123,7 @@ router.post('/posts/:id/flag', protect, flagPost);
 // @route   GET /api/forum/posts/:postId/comments
 // @desc    Get all comments for a post
 // @access  Public
-router.get('/posts/:postId/comments', getCommentsByPost);
+router.get('/posts/:postId/comments', getCommentsForPost);
 
 // @route   POST /api/forum/posts/:postId/comments
 // @desc    Create a comment on a post
@@ -126,7 +143,7 @@ router.delete('/comments/:id', protect, deleteComment);
 // @route   POST /api/forum/comments/:id/vote
 // @desc    Vote on a comment (upvote or downvote)
 // @access  Private
-router.post('/comments/:id/vote', protect, voteOnComment);
+router.post('/comments/:id/vote', protect, voteComment);
 
 // @route   POST /api/forum/comments/:id/flag
 // @desc    Flag a comment for moderation
