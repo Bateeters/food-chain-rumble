@@ -74,7 +74,7 @@ const authSlice = createSlice({
         })
         .addCase(register.fulfilled, (state, action) => {
             state.isLoading = false;
-            // Dont auto-login after register (need email verification)
+            // Don't auto-login after register (need email verification)
         })
         .addCase(register.rejected, (state, action) => {
             state.isLoading = false;
