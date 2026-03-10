@@ -22,7 +22,7 @@ api.interceptors.request.use(
     }
 );
 
-// Response interceptor - handle errors globaly
+// Response interceptor - handle errors globally
 api.interceptors.response.use(
     (response) => response,
     (error) => {
