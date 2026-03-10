@@ -4,7 +4,7 @@ import authService from  '../../services/authService';
 // Async thunks
 export const login = createAsyncThunk(
     'auth/login',
-    async (CredentialsContainer, { rejectWithValue }) => {
+    async (credentials, { rejectWithValue }) => {
         try {
             const data = await authService.login(credentials);
             return data;
