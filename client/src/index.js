@@ -23,8 +23,8 @@ root.render(
           rtl={false}
           pauseOnFocusLoss
           draggable
-          pauseOnHover 
-        />     
+          pauseOnHover
+        />
       </BrowserRouter>
     </Provider>
   </React.StrictMode>

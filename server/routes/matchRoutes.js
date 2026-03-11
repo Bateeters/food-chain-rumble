@@ -5,8 +5,8 @@ const router = express.Router();
 const {
     submitMatch,
     getMatches,
-    getMatchById,
     getRecentMatches,
+    getMatchById,
     getUserMatchHistory,
     deleteMatch
 } = require('../controllers/matchController');

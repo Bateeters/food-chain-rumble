@@ -1,7 +1,7 @@
 const User = require('../models/User');
 const PlayerStats = require('../models/PlayerStats');
 const mongoose = require('mongoose');
-const PlayerStats = require('../models/PlayerStats');
+const crypto = require('crypto');
 
 // @route   GET /api/users
 // @desc    Get all users (admin only - for user management)

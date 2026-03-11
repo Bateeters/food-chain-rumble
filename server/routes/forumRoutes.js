@@ -33,7 +33,7 @@ const {
     flagPost,
     flagComment
 
-} = require('../controllers/forumControllers');
+} = require('../controllers/forumController');
 
 // Import middleware
 const { protect, isAdmin, isModerator, isModeratorOrAdmin } = require('../middleware/auth');

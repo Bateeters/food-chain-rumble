@@ -85,27 +85,27 @@ buildStatsSchema.virtual('winRate').get(function() {
 });
 
 // Virtual: Calculate actual averages (running average)
-talentStatsSchema.virtual('avgKills').get(function() {
+buildStatsSchema.virtual('avgKills').get(function() {
     return this.stats.totalUses > 0
         ? parseFloat((this.stats.avgKills / this.stats.totalUses).toFixed(2))
         : 0;
 });
-talentStatsSchema.virtual('avgDeaths').get(function() {
+buildStatsSchema.virtual('avgDeaths').get(function() {
     return this.stats.totalUses > 0
         ? parseFloat((this.stats.avgDeaths / this.stats.totalUses).toFixed(2))
         : 0;
 });
-talentStatsSchema.virtual('avgAssists').get(function() {
+buildStatsSchema.virtual('avgAssists').get(function() {
     return this.stats.totalUses > 0
         ? parseFloat((this.stats.avgAssists / this.stats.totalUses).toFixed(2))
         : 0;
 });
-talentStatsSchema.virtual('avgDamageDealt').get(function() {
+buildStatsSchema.virtual('avgDamageDealt').get(function() {
     return this.stats.totalUses > 0
         ? parseFloat((this.stats.avgDamageDealt / this.stats.totalUses).toFixed(2))
         : 0;
 });
-talentStatsSchema.virtual('avgDamageTaken').get(function() {
+buildStatsSchema.virtual('avgDamageTaken').get(function() {
     return this.stats.totalUses > 0
         ? parseFloat((this.stats.avgDamageTaken / this.stats.totalUses).toFixed(2))
         : 0;

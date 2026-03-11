@@ -6,7 +6,7 @@ import { useSelector } from 'react-redux';
 import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
 
-// Pages
+// Pages (we'll create these next)
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -18,40 +18,40 @@ import './App.css';
 
 // Protected Route wrapper
 const ProtectedRoute = ({ children }) => {
-    const { isAuthenticated } = useSelector((state) => state.auth);
-    return isAuthenticated ? children : <Navigate to="/login" />;
+  const { isAuthenticated } = useSelector((state) => state.auth);
+  return isAuthenticated ? children : <Navigate to="/login" />;
 };
 
 function App() {
-    return (
-        <div className='App'>
-            <Header />
-            <main className='main-content'>
-                <Routes>
-                    {/* Public Routes */}
-                    <Route path="/" element={<Home />}/>
-                    <Route path="/login" element={<Login />}/>
-                    <Route path="/register" element={<Register />}/>
-                    <Route path="/characters" element={<Characters />}/>
-                    <Route path="/leaderboard" element={<Leaderboard />}/>
+  return (
+    <div className="App">
+      <Header />
+      <main className="main-content">
+        <Routes>
+          {/* Public Routes */}
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/characters" element={<Characters />} />
+          <Route path="/leaderboard" element={<Leaderboard />} />
 
-                    {/* Protected Routes */}
-                    <Route
-                        path="/dashboard"
-                        element={
-                            <ProtectedRoute>
-                                <Dashboard />
-                            </ProtectedRoute>
-                        }
-                    />
+          {/* Protected Routes */}
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
 
-                    {/* 404 Page */}
-                    <Route path="*" element={<h1>404 - Page Not Found</h1>} />
-                </Routes>
-            </main>
-            <Footer />
-        </div>
-    );
+          {/* 404 */}
+          <Route path="*" element={<h1>404 - Page Not Found</h1>} />
+        </Routes>
+      </main>
+      <Footer />
+    </div>
+  );
 }
 
 export default App;

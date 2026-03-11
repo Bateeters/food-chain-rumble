@@ -11,7 +11,9 @@ const {
     updatePassword,
     banUser,
     unbanUser,
-    getBanInfo
+    getBanInfo,
+    requestEmailChange,
+    verifyEmailChange
 } = require('../controllers/userController');
 
 // Import middleware
@@ -30,12 +32,12 @@ router.get('/:id', getUserById);
 // @route   PATCH /api/users/:id
 // @desc    Update user profile (own profile only)
 // @access  Private
-route.patch('/:id', protect, updateUser);
+router.patch('/:id', protect, updateUser);
 
 // @route   DELETE /api/users/:id
 // @desc    Delete user account (own account or admins)
 // @access  Private
-route.delete('/:id', protect, deleteUser);
+router.delete('/:id', protect, deleteUser);
 
 // @route   GET /api/users/:id/stats
 // @desc    Get user statistics (all game modes)

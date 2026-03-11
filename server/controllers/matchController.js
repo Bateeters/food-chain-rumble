@@ -500,7 +500,7 @@ const deleteMatch = async (req, res) => {
     }
 };
 
-module.esports = {
+module.exports = {
     submitMatch,
     getMatches,
     getRecentMatches,
