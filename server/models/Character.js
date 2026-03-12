@@ -16,6 +16,11 @@ const characterSchema = new mongoose.Schema({
         type: String,
         default: 'default-character.png'
     },
+    role: {
+        type: String,
+        enum: ['fighter', 'tank', 'assassin'],
+        required: true
+    },
     abilities: [{
         name: {
             type: String,

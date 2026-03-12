@@ -5,9 +5,9 @@ require('dotenv').config();
 const characters = [
     {
         name: 'Lion',
-        description: 'The king of the savanna. A powerful melee bruiser with high damage and sustain.',
+        description: 'The king of the savanna. A powerful melee fighter with high damage and sustain.',
         image: 'lion.png',
-        role: 'Bruiser',
+        role: 'fighter',
         difficulty: 1,
         abilities: [
             // Damage numbers and cooldowns will need to be adjusted later
@@ -47,9 +47,9 @@ const characters = [
     },
     {
         name: 'Bull',
-        description: 'A melee bruiser self-made in the fields with endless strength. Has high damage and mobility at the risk of safety.',
+        description: 'A melee fighter self-made in the fields with endless strength. Has high damage and mobility at the risk of safety.',
         image: 'bull.png',
-        role: 'Bruiser',
+        role: 'fighter',
         difficulty: 1,
         abilities: [
             {
@@ -88,7 +88,7 @@ const characters = [
         name: 'Porcupine',
         description: 'A defensive creature that excels at timing and punishing her enemies with sharp quills. Turn enemy attacks against them.',
         image: 'porcupine.png',
-        role: 'Tank',
+        role: 'tank',
         difficulty: 3,
         abilities: [
             {
