@@ -25,7 +25,9 @@ const Login = () => {
   // Show error toast
   useEffect(() => {
     if (error) {
-      toast.error(error);
+      toast.error(error, {
+        autoClose: 6000
+      });
       dispatch(clearError());
     }
   }, [error, dispatch]);
