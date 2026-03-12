@@ -92,6 +92,13 @@ const login = async (req, res) => {
             });
         }
 
+        // Check if email is verified
+        if (!user.isEmailVerified) {
+            return res.status(401).json({
+                error: 'Email not verified. Please check your inbox for verification email.'
+            });
+        }
+        
         // Check if user is banned
         if (user.isBanned) {
             // Check if ban has expired

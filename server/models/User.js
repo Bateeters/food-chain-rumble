@@ -18,6 +18,25 @@ const userSchema = new mongoose.Schema({
         trim: true,
         match: [/^\S+@\S+\.\S+$/, 'Please provide a valid email']
     },
+    isEmailVerified: {
+        type: Boolean,
+        default: false
+    },
+    emailVerificationToken: {
+        type: String
+    },
+    emailVerificationExpires: {
+        type: Date
+    },
+    pendingEmail: {
+        type: String
+    },
+    emailChangeToken: {
+        type: String
+    },
+    emailChangeExpires: {
+        type: Date
+    },
     password: {
         type: String,
         required: [true, 'Password is required'],
@@ -87,17 +106,12 @@ const userSchema = new mongoose.Schema({
 });
 
 // Hash password before saving
-userSchema.pre('save', async function(next) {
-    // Only has if password is new or modified
-    if (!this.isModified('password')) return next();
+userSchema.pre('save', async function() {
+    // Only hash if password is new or modified
+    if (!this.isModified('password')) return;
 
-    try {
-        const salt = await bcrypt.genSalt(10);
-        this.password = await bcrypt.hash(this.password, salt);
-        next();
-    } catch (error) {
-        next(error);
-    }
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
 });
 
 // Method to compare passwords during login
