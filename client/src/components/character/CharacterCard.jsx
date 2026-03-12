@@ -1,4 +1,4 @@
-aimport React from "react";
+import React from "react";
 import './CharacterCard.css';
 
 const CharacterCard = ({ character, onClick }) => {
@@ -46,7 +46,7 @@ const CharacterCard = ({ character, onClick }) => {
                         className='difficulty-badge'
                         style={{ backgroundColor: getDifficultyColor(character.difficulty) }}
                     >
-                        {character.difficulty.toUpperCase()}
+                        {character.difficulty}
                     </span>
                 </div>
             </div>

@@ -55,11 +55,14 @@ const characterSlice = createSlice({
             })
             .addCase(fetchCharacters.fulfilled, (state, action) => {
                 state.isLoading = false;
-                state.characters = action.payload.characters;
+                state.characters = Array.isArray(action.payload.characters)
+                ? action.payload.characters
+                : [];
             })
             .addCase(fetchCharacters.rejected, (state, action) => {
                 state.isLoading = false;
                 state.error = action.payload;
+                state.characters = [];
             })
             // Fetch character by ID
             .addCase(fetchCharacterById.pending, (state) => {
@@ -68,11 +71,12 @@ const characterSlice = createSlice({
             })
             .addCase(fetchCharacterById.fulfilled, (state, action) => {
                 state.isLoading = false;
-                state.characters = action.payload.character;
+                state.selectedCharacter = action.payload.character || null;
             })
             .addCase(fetchCharacterById.rejected, (state, action) => {
                 state.isLoading = false;
                 state.error = action.payload;
+                state.selectedCharacter = null;
             });
     }
 });

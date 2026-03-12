@@ -8,3 +8,8 @@ export const store = configureStore({
     characters: characterReducer
   }
 });
+
+// Expose store globally for debugging (development only)
+if (process.env.NODE_ENV === 'development') {
+  window.store = store;
+}

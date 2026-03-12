@@ -12,6 +12,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import Characters from './pages/Characters';
+import CharacterDetail from './pages/CharacterDetail';
 import Leaderboard from './pages/Leaderboard';
 
 import './App.css';
@@ -33,6 +34,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/characters" element={<Characters />} />
+          <Route path="/characters/:id" element={<CharacterDetail />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
 
           {/* Protected Routes */}

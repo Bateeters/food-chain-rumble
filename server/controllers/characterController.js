@@ -65,9 +65,9 @@ const getCharacterById = async (req, res) => {
         const character = await Character.findById(req.params.id);
 
         if (!character) {
-            return res.status(404).json({
-                error: 'Character not found'
-            });
+        return res.status(404).json({
+            error: 'Character not found'
+        });
         }
 
         res.json({ character });
@@ -75,8 +75,8 @@ const getCharacterById = async (req, res) => {
     } catch (error) {
         console.error('Get character by ID error:', error);
         res.status(500).json({
-            error: 'Error fetching character',
-            details: error.message
+        error: 'Error fetching character',
+        details: error.message
         });
     }
 };

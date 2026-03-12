@@ -12,6 +12,10 @@ const characterSchema = new mongoose.Schema({
         required: [true, 'Description is required'],
         maxlength: [1000, 'Description cannot exceed 1000 characters']
     },
+    lore: {
+        type: String,
+        maxlength: [5000, 'Lore cannot exceed 5000 characters']
+    },
     image: {
         type: String,
         default: 'default-character.png'

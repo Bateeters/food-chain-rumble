@@ -1,0 +1,96 @@
+.character-card {
+  background: linear-gradient(135deg, #1e3a5f 0%, #16213e 100%);
+  border-radius: 16px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 2px solid #2d3561;
+  position: relative;
+}
+
+.character-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 24px rgba(0, 212, 255, 0.3);
+  border-color: #00d4ff;
+}
+
+.character-card-header {
+  position: relative;
+  padding: 1.5rem;
+  background: linear-gradient(180deg, rgba(0, 212, 255, 0.1) 0%, transparent 100%);
+}
+
+.character-image-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.character-image-placeholder {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #00d4ff 0%, #0096c7 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  font-weight: bold;
+  color: #0f0f1e;
+  box-shadow: 0 4px 12px rgba(0, 212, 255, 0.4);
+}
+
+.character-role-badge {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  padding: 0.4rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.character-card-body {
+  padding: 0 1.5rem 1.5rem;
+}
+
+.character-name {
+  color: #00d4ff;
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+  text-align: center;
+  font-weight: 700;
+}
+
+.character-description {
+  color: #aaa;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin-bottom: 1rem;
+  text-align: center;
+  min-height: 3rem;
+}
+
+.character-difficulty {
+  display: flex;
+  justify-content: center;
+}
+
+.difficulty-badge {
+  padding: 0.4rem 1rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: white;
+  letter-spacing: 0.5px;
+}
+
+@media (max-width: 768px) {
+  .character-card {
+    max-width: 100%;
+  }
+}
