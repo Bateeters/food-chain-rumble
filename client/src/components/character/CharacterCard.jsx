@@ -44,7 +44,7 @@ const CharacterCard = ({ character, onClick }) => {
                 <div className='character-difficulty'>
                     <span
                         className='difficulty-badge'
-                        style={{ backgroundColor: getDifficultyColor(character.difficutly) }}
+                        style={{ backgroundColor: getDifficultyColor(character.difficulty) }}
                     >
                         {character.difficulty.toUpperCase()}
                     </span>
