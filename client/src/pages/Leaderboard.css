@@ -146,20 +146,20 @@
 
 /* Column Widths */
 .rank-col {
-  width: 100px;
+  width: 10%;
 }
 
 .player-col {
-  width: auto;
+  width: 60%;
 }
 
 .character-col {
-  width: 150px;
+  width: 20%;
 }
 
 .mmr-col {
-  width: 120px;
-  text-align: center;
+  width: 10%;
+  text-align: start;
 }
 
 .games-col {
@@ -272,6 +272,50 @@
   }
 }
 
+/* Top Characters Column */
+.characters-col {
+  width: 200px;
+}
+
+.top-characters {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.character-mini {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  cursor: pointer;
+}
+
+.character-mini-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #00d4ff 0%, #0096c7 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 0.9rem;
+  color: #0f0f1e;
+  box-shadow: 0 2px 4px rgba(0, 212, 255, 0.3);
+}
+
+.character-mini-name {
+  font-size: 0.7rem;
+  color: #888;
+  white-space: nowrap;
+}
+
+.character-mini:hover .character-mini-icon {
+  transform: scale(1.1);
+  box-shadow: 0 4px 8px rgba(0, 212, 255, 0.5);
+}
+
 @media (max-width: 768px) {
   .leaderboard-header h1 {
     font-size: 2rem;
@@ -295,6 +339,10 @@
   /* Hide some columns on mobile */
   .games-col,
   .wins-col {
+    display: none;
+  }
+
+  .characters-col {
     display: none;
   }
 }

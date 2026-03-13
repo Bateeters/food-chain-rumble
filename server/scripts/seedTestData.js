@@ -42,6 +42,7 @@ const seedTestData = async () => {
         for (const user of testUsers) {
             for (const gameMode of gameModes) {
                 for (const character of characters) {
+                    const baseMMR = 1000 + Math.floor(Math.random() * 1000);
                     await PlayerStats.create({
                         user: user._id,
                         gameMode: gameMode,
@@ -58,10 +59,10 @@ const seedTestData = async () => {
                             longestWinStreak: 0,
                             currentWinStreak: 0
                         },
-                        accountMMR: 1000 + Math.floor(Math.random() * 1000),
-                        characterMMR: 1000,
-                        peakAccountMMR: 1000,
-                        peakCharacterMMR: 1000
+                        accountMMR: baseMMR,
+                        characterMMR: baseMMR + Math.floor(Math.random() * 200) - 100,
+                        peakAccountMMR: baseMMR,
+                        peakCharacterMMR: baseMMR
                     });
                 }
             }
@@ -159,7 +160,6 @@ const seedTestData = async () => {
                 });
 
                 if (stats) {
-                    // Update nested stats
                     stats.stats.totalMatches += 1;
                     stats.stats.wins += isWinner ? 1 : 0;
                     stats.stats.losses += isWinner ? 0 : 1;
@@ -168,24 +168,25 @@ const seedTestData = async () => {
                     stats.stats.totalAssists += playerData.stats.assists;
                     stats.stats.totalDamageDealt += playerData.stats.damageDealt;
                     stats.stats.totalDamageTaken += playerData.stats.damageTaken;
-                
-                    // Update win streak
+                    
                     if (isWinner) {
                         stats.stats.currentWinStreak += 1;
                         if (stats.stats.currentWinStreak > stats.stats.longestWinStreak) {
-                            stats.stats.longestWinStreak = stats.stats.currentWinStreak;
+                        stats.stats.longestWinStreak = stats.stats.currentWinStreak;
                         }
                     } else {
                         stats.stats.currentWinStreak = 0;
                     }
                     
-                    // Update MMR (simple calculation)
                     const mmrChange = isWinner ? 25 : -20;
                     stats.accountMMR = Math.max(0, stats.accountMMR + mmrChange);
+                    stats.characterMMR = Math.max(0, stats.characterMMR + mmrChange); // ✅ ADD THIS
                     
-                    // Update peak MMR
                     if (stats.accountMMR > stats.peakAccountMMR) {
                         stats.peakAccountMMR = stats.accountMMR;
+                    }
+                    if (stats.characterMMR > stats.peakCharacterMMR) { // ✅ ADD THIS
+                        stats.peakCharacterMMR = stats.characterMMR;
                     }
                     
                     stats.lastPlayed = new Date();

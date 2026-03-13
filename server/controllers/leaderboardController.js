@@ -158,7 +158,7 @@ const getLeaderboard = async (req, res) => {
 };
 
 // @route   GET /api/leaderboard/overall
-// @desc    Get overall leaderbaord (aggregated across all characters)
+// @desc    Get overall leaderboard (aggregated across all characters)
 // @access  Public
 const getOverallLeaderboard = async (req, res) => {
     try {
@@ -182,16 +182,25 @@ const getOverallLeaderboard = async (req, res) => {
         // Aggregate stats across all characters for each user
         const aggregatedStats = await PlayerStats.aggregate([
             { $match: { gameMode: gameMode } },
+            
             {
                 $group: {
                     _id: '$user',
-                    mmr: { $max: '$accountMMR' }, // Highest MMR across characters
+                    mmr: { $max: '$accountMMR' },
                     gamesPlayed: { $sum: '$stats.totalMatches' },
                     wins: { $sum: '$stats.wins' },
                     losses: { $sum: '$stats.losses' },
                     totalKills: { $sum: '$stats.totalKills' },
                     totalDeaths: { $sum: '$stats.totalDeaths' },
-                    totalAssists: { $sum: '$stats.totalAssists' }
+                    totalAssists: { $sum: '$stats.totalAssists' },
+                    allCharacters: {
+                        $push: {
+                            character: '$character',
+                            characterMMR: '$characterMMR',
+                            matches: '$stats.totalMatches',
+                            wins: '$stats.wins'
+                        }
+                    }
                 }
             },
 
@@ -209,31 +218,69 @@ const getOverallLeaderboard = async (req, res) => {
             },
 
             { $unwind: '$userInfo' },
+
+            {
+                $lookup: {
+                    from: 'characters',
+                    localField: 'allCharacters.character',
+                    foreignField: '_id',
+                    as: 'characterDetails'
+                }
+            },
       
             {
                 $project: {
-                _id: 1,
-                username: '$userInfo.username',
-                avatar: '$userInfo.avatar',
-                mmr: 1,
-                gamesPlayed: 1,
-                wins: 1,
-                losses: 1,
-                totalKills: 1,
-                totalDeaths: 1,
-                totalAssists: 1
+                    _id: '$userInfo._id',
+                    username: '$userInfo.username',
+                    avatar: '$userInfo.avatar',
+                    mmr: 1,
+                    gamesPlayed: 1,
+                    wins: 1,
+                    losses: 1,
+                    totalKills: 1,
+                    totalDeaths: 1,
+                    totalAssists: 1,
+                    allCharacters: 1,
+                    characterDetails: 1
                 }
             }
         ]);
 
+        // Process each player to add top 3 characters
+        aggregatedStats.forEach(player => {
+            // Sort characters by MMR and take top 3
+            const sortedCharacters = player.allCharacters
+                .sort((a, b) => b.characterMMR - a.characterMMR)
+                .slice(0, 3);
+
+            // Map character details
+            player.topCharacters = sortedCharacters.map(char => {
+                const details = player.characterDetails.find(
+                    c => c._id.toString() === char.character.toString()
+                );
+                return {
+                    _id: char.character,
+                    name: details?.name || 'Unknown',
+                    image: details?.image || 'default.png',
+                    mmr: char.characterMMR,
+                    matches: char.matches,
+                    wins: char.wins
+                };
+            });
+
+            // Clean up temporary fields
+            delete player.allCharacters;
+            delete player.characterDetails;
+        });
+
         // Get total count for pagination
-        const totalCount = await PlayerStats.aggregate([
+        const totalCountResult = await PlayerStats.aggregate([
             { $match: { gameMode: gameMode } },
-            { $group: {_id: '$user' } },
+            { $group: { _id: '$user' } },
             { $count: 'total' }
         ]);
 
-        const totalPlayers = totalCount.length > 0 ? totalCount[0].total : 0;
+        const totalPlayers = totalCountResult.length > 0 ? totalCountResult[0].total : 0;
 
         res.json({
             rankings: aggregatedStats,
@@ -244,6 +291,7 @@ const getOverallLeaderboard = async (req, res) => {
                 hasMore: page * limit < totalPlayers
             }
         });
+
     } catch (error) {
         console.error('Get overall leaderboard error:', error);
         res.status(500).json({

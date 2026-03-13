@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchOverallLeaderboard, fetchCharacterLeaderboard } from '../store/slices/leaderboardSlice';
+import { useNavigate } from 'react-router-dom';
+import { fetchOverallLeaderboard, fetchCharacterLeaderboard, clearLeaderboard } from '../store/slices/leaderboardSlice';
 import { fetchCharacters } from '../store/slices/characterSlice';
 import './Leaderboard.css';
 
 const Leaderboard = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { rankings, pagination, isLoading, error } = useSelector(
     (state) => state.leaderboard
   );
@@ -24,6 +26,8 @@ const Leaderboard = () => {
 
   // Fetch leaderboard data
   useEffect(() => {
+    dispatch(clearLeaderboard());
+
     if (viewMode === 'overall') {
       dispatch(fetchOverallLeaderboard({ gameMode: selectedGameMode, page: 1, limit: 100 }));
     } else if (viewMode === 'character' && selectedCharacter) {
@@ -43,6 +47,10 @@ const Leaderboard = () => {
     }
   };
 
+  const handleCharacterClick = (id) => {
+    navigate(`/characters/${id}`);
+  };
+
   const getRankBadgeColor = (rank) => {
     if (rank === 1) return '#ffd700';
     if (rank === 2) return '#c0c0c0';
@@ -57,25 +65,8 @@ const Leaderboard = () => {
     return '';
   };
 
-  // TEST FUNCTION
-  const testFetch = async () => {
-    console.log('🧪 Test button clicked');
-    try {
-      const result = await dispatch(fetchOverallLeaderboard({ 
-        gameMode: '1v1_ranked', 
-        page: 1, 
-        limit: 100 
-      }));
-      console.log('🧪 Test result:', result);
-    } catch (error) {
-      console.error('🧪 Test error:', error);
-    }
-  };
   return (
     <div className='leaderboard-page'>
-      <button onClick={testFetch} style={{position: 'fixed', top: '100px', right: '20px', zIndex: 9999}}>
-        TEST FETCH
-      </button>
       <div className='leaderboard-container'>
         <div className='leaderboard-header'>
           <h1>Leaderboard</h1>
@@ -166,11 +157,13 @@ const Leaderboard = () => {
                   <tr>
                     <th className='rank-col'>Rank</th>
                     <th className='player-col'>Player</th>
-                    {viewMode === 'character' && <th className='character-col'>Character</th>}
+                    {viewMode === 'overall' && <th className='character-col'>Top Characters</th>}
                     <th className='mmr-col'>MMR</th>
+                    {/*
                     <th className='games-col'>Games</th>
                     <th className='wins-col'>Wins</th>
                     <th className='winrate-col'>Win Rate</th>
+                    */}
                   </tr>
                 </thead>
                 <tbody>
@@ -178,6 +171,7 @@ const Leaderboard = () => {
                     const rank = (pagination.currentPage - 1) * 100 + index + 1;
                     return (
                       <tr key={player._id || index} className={rank <= 3 ? 'top-three': ''}>
+
                         <td className='rank-col'>
                           <div
                             className='rank-badge'
@@ -186,17 +180,32 @@ const Leaderboard = () => {
                             {getRankIcon(rank)} {rank}
                           </div>
                         </td>
+
                         <td className='player-col'>
                           <div className='player-info'>
                             <span className='player-name'>{player.username}</span>
                           </div>
                         </td>
-                        {viewMode === 'character' && (
-                          <td className='character-col'>{player.characterName || 'N/A'}</td>
+                        
+                        {viewMode === 'overall' && (
+                          <td className='character-col'>
+                            <div className='top-characters'>
+                              {player.topCharacters?.slice(0,3).map((char, idx) => (
+                                <div key={idx} className='character-mini' title={`${char.name}: ${char.mmr} MMR`}>
+                                  <div className='character-mini-icon' onClick={() => handleCharacterClick(char._id)}>
+                                    {char.name.charAt(0)}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </td>
                         )}
+
                         <td className='mmr-col'>
-                          <span className='mmr-value'>{Math.round(player.mmr || player.rating || 1000)}</span>
+                          <span className='mmr-value'>{Math.round(player.mmr || player.rating)}</span>
                         </td>
+
+                        {/*
                         <td className='games-col'>{player.gamesPlayed || 0}</td>
                         <td className='wins-col'>{player.wins || 0}</td>
                         <td className='wins-col'>
@@ -205,6 +214,7 @@ const Leaderboard = () => {
                             : '0%'}
                           </span>
                         </td>
+                        */}
                       </tr>
                     );
                   })}
