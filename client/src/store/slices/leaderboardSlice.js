@@ -35,8 +35,6 @@ const initialState = {
         totalPlayers: 0,
         hasMore: false
     },
-    selectedGameMode: null,
-    selectedCharacter: null,
     isLoading: false,
     error: null
 };
@@ -46,9 +44,6 @@ const leaderboardSlice = createSlice({
     name: 'leaderboard',
     initialState,
     reducers: {
-        setGameMode: (state, action) => {
-            state.selectedCharacter = action.payload;
-        },
         clearLeaderboard: (state) => {
             state.rankings = [];
             state.pagination = {
@@ -97,5 +92,5 @@ const leaderboardSlice = createSlice({
     }
 });
 
-export const { setGameMode, setCharacter, clearLeaderboard, clearError } = leaderboardSlice.actions;
+export const { clearLeaderboard, clearError } = leaderboardSlice.actions;
 export default leaderboardSlice.reducer;

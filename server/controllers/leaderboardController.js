@@ -157,6 +157,181 @@ const getLeaderboard = async (req, res) => {
     }
 };
 
+// @route   GET /api/leaderboard/overall
+// @desc    Get overall leaderbaord (aggregated across all characters)
+// @access  Public
+const getOverallLeaderboard = async (req, res) => {
+    try {
+        const { gameMode, page = 1, limit = 100 } = req.query;
+
+        if (!gameMode) {
+            return res.status(400).json({
+                error: 'Game mode is required'
+            });
+        }
+
+        // Validate game mode
+        const validModes = ['1v1_ranked', '2v2_ranked', '3v3_ranked'];
+        if (!validModes.includes(gameMode)) {
+            return res.status(400).json({
+                error: 'Invalid game mode',
+                validModes
+            });
+        }
+
+        // Aggregate stats across all characters for each user
+        const aggregatedStats = await PlayerStats.aggregate([
+            { $match: { gameMode: gameMode } },
+            {
+                $group: {
+                    _id: '$user',
+                    mmr: { $max: '$accountMMR' }, // Highest MMR across characters
+                    gamesPlayed: { $sum: '$stats.totalMatches' },
+                    wins: { $sum: '$stats.wins' },
+                    losses: { $sum: '$stats.losses' },
+                    totalKills: { $sum: '$stats.totalKills' },
+                    totalDeaths: { $sum: '$stats.totalDeaths' },
+                    totalAssists: { $sum: '$stats.totalAssists' }
+                }
+            },
+
+            { $sort: { mmr: -1 } },
+            { $skip: (page - 1) * limit },
+            { $limit: parseInt(limit) },
+
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: '_id',
+                    foreignField: '_id',
+                    as: 'userInfo'
+                }
+            },
+
+            { $unwind: '$userInfo' },
+      
+            {
+                $project: {
+                _id: 1,
+                username: '$userInfo.username',
+                avatar: '$userInfo.avatar',
+                mmr: 1,
+                gamesPlayed: 1,
+                wins: 1,
+                losses: 1,
+                totalKills: 1,
+                totalDeaths: 1,
+                totalAssists: 1
+                }
+            }
+        ]);
+
+        // Get total count for pagination
+        const totalCount = await PlayerStats.aggregate([
+            { $match: { gameMode: gameMode } },
+            { $group: {_id: '$user' } },
+            { $count: 'total' }
+        ]);
+
+        const totalPlayers = totalCount.length > 0 ? totalCount[0].total : 0;
+
+        res.json({
+            rankings: aggregatedStats,
+            pagination: {
+                currentPage: parseInt(page),
+                totalPages: Math.ceil(totalPlayers / limit),
+                totalPlayers: totalPlayers,
+                hasMore: page * limit < totalPlayers
+            }
+        });
+    } catch (error) {
+        console.error('Get overall leaderboard error:', error);
+        res.status(500).json({
+            error: 'Error fetching leaderboard',
+            details: error.message
+        });
+    }
+};
+
+// @route   GET /api/leaderboard/character/:characterId
+// @desc    Get character-specific leaderboard
+// @access  Public
+const getCharacterSpecificLeaderboard = async (req, res) => {
+    try {
+        const { characterId } = req.params;
+        const { gameMode, page = 1, limit = 100 } = req.query;
+
+        if (!gameMode) {
+            return res.status(400).json({
+                    error: 'Game mode is required'
+            });
+        }
+
+        // Validate game mode
+        const validModes = ['1v1_ranked', '2v2_ranked', '3v3_ranked'];
+        if (!validModes.includes(gameMode)) {
+            return res.status(400).json({
+                    error: 'Invalid game mode',
+                    validModes
+            });
+        }
+
+        // Verify character exists
+        const character = await Character.findById(characterId);
+        if (!character) {
+            return res.status(404).json({
+                    error: 'Character not found'
+            });
+        }
+
+        // Get players ranked by their MMR with this specific character
+        const rankings = await PlayerStats.find({
+            character: characterId,
+            gameMode: gameMode
+        })
+            .populate('user', 'username avatar')
+            .sort({ characterMMR: -1 })
+            .skip((page - 1) * limit)
+            .limit(parseInt(limit))
+            .lean();
+
+        // Format the response
+        const formattedRankings = rankings.map(stat => ({
+            _id: stat.user._id,
+            username: stat.user.username,
+            avatar: stat.user.avatar,
+            characterName: character.name,
+            mmr: stat.characterMMR,
+            gamesPlayed: stat.stats.totalMatches,
+            wins: stat.stats.wins,
+            losses: stat.stats.losses
+        }));
+
+        // Get total count
+        const totalPlayers = await PlayerStats.countDocuments({
+            character: characterId,
+            gameMode: gameMode
+        });
+
+        res.json({
+            rankings: formattedRankings,
+            pagination: {
+                    currentPage: parseInt(page),
+                    totalPages: Math.ceil(totalPlayers / limit),
+                    totalPlayers: totalPlayers,
+                    hasMore: page * limit < totalPlayers
+            }
+        });
+
+    } catch (error) {
+            console.error('Get character leaderboard error:', error);
+            res.status(500).json({
+                error: 'Error fetching character leaderboard',
+                details: error.message
+            });
+    }
+};
+
 // @route   GET /api/leaderboard/:gameMode/rank/:userId
 // @desc    Get a specific player's rank in a game mode
 // @access  Public
@@ -807,8 +982,10 @@ const getBuildBalanceData = async (req, res) => {
 
 module.exports = {
     getLeaderboard,
+    getOverallLeaderboard,
     getPlayerRank,
     getCharacterLeaderboard,
+    getCharacterSpecificLeaderboard,
     getTopCharacters,
     getCharacterBalanceData,
     getTalentBalanceData,

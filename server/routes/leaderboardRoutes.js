@@ -4,8 +4,10 @@ const router = express.Router();
 // Import controller functions
 const {
     getLeaderboard,
+    getOverallLeaderboard,
     getPlayerRank,
     getCharacterLeaderboard,
+    getCharacterSpecificLeaderboard,
     getTopCharacters,
     getCharacterBalanceData,
     getTalentBalanceData,
@@ -19,6 +21,16 @@ const { protect, isAdmin } = require('../middleware/auth');
 // @desc    Get overall top characters across all ranked modes
 // @access  Public
 router.get('/characters/top', getTopCharacters);
+
+// @route   GET /api/leaderboard/overall
+// @desc    Get overall leaderboard (aggregated across all characters)
+// @access  Public
+router.get('/overall', getOverallLeaderboard);
+
+// @route   GET /api/leaderboard/character/:characterId
+// @desc    Get character-specific leaderboard
+// @access  Public
+router.get('/character/:characterId', getCharacterSpecificLeaderboard);
 
 // @route   GET /api/leaderboards/balance/characters
 // @desc    Get DETAILED character balance data including talent usage
