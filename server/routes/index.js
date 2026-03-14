@@ -8,6 +8,7 @@ const characterRoutes = require('./characterRoutes');
 const matchRoutes = require('./matchRoutes');
 const leaderboardRoutes = require('./leaderboardRoutes');
 const forumRoutes = require('./forumRoutes');
+const userStatsRoutes = require('./userStatsRoutes');
 
 // Mount routes
 router.use ('/auth', authRoutes);               // /api/auth/*
@@ -16,6 +17,7 @@ router.use('/characters', characterRoutes);     // /api/characters/*
 router.use('/matches', matchRoutes);            // /api/matches/*
 router.use('/leaderboard', leaderboardRoutes);  // /api/leaderboard/*
 router.use('/forum', forumRoutes);              // /api/forum/*
+router.use('/user', userStatsRoutes);           // /api/user/*
 
 // Heath check route
 router.get('/heath', (req, res) => {

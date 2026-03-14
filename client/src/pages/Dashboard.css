@@ -30,7 +30,7 @@
 /* Stats Overview Cards */
 .stats-overview {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(4, minmax(220px, 1fr));
   gap: 1.5rem;
   margin-bottom: 3rem;
 }
@@ -44,6 +44,31 @@
   align-items: center;
   gap: 1rem;
   transition: all 0.3s ease;
+}
+
+.rank-card {
+  grid-column: 2/4;
+  display: flex;
+  justify-content: space-between;
+}
+
+.rank-stat-card {
+  border: 1px solid rgba(0, 212, 255, 0.2);
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  transition: all 0.3s ease;
+  width: 30%;
+}
+
+.rank-stat-card:hover {
+  transform: translateY(-5px);
+  border-color: rgba(0, 212, 255, 0.5);
+  box-shadow: 0 8px 24px rgba(0, 212, 255, 0.2);
 }
 
 .stat-card:hover {
@@ -164,9 +189,9 @@
   text-align: center;
 }
 
-.characters-grid {
+.dashboard-characters-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
   gap: 1.5rem;
 }
 

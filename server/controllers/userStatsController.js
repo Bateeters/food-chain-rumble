@@ -2,6 +2,63 @@ const PlayerStats = require('../models/PlayerStats');
 const Match = require('../models/Match');
 const Character = require('../models/Character');
 
+// Helper function to calculate user's rank in a specific game mode
+const calculateRank = async (userId, gameMode) => {
+    try {
+        // Get all users highest MMR for this game mode
+        const allUserStats = await PlayerStats.aggregate([
+            { $match: { gameMode: gameMode } },
+            {
+                $group: {
+                _id: '$user',
+                highestMMR: { $max: '$accountMMR' }
+                }
+            },
+            { $sort: { highestMMR: -1 } }
+        ]);
+
+        // Find this user's position
+        const userIndex = allUserStats.findIndex(
+            stat => stat._id.toString() === userId.toString()
+        );
+
+        return {
+            rank: userIndex >= 0 ? userIndex + 1 : null,
+            totalPlayers: allUserStats.length
+        };
+    } catch (error) {
+        console.error('Calculate rank error:', error);
+        return { rank: null, totalPlayers: 0 };
+    }
+};
+
+// Helper function to calculate user's rank with a specific character
+const calculateCharacterRank = async (userId, characterId, gameMode) => {
+    try {
+        // Get all users' MMR for this character in this game mode
+        const allCharacterStats = await PlayerStats.find({
+            character: characterId,
+            gameMode: gameMode
+        })
+            .sort({ characterMMR: -1 })
+            .lean();
+
+        // Find this user's position
+        const userIndex = allCharacterStats.findIndex(
+            stat => stat.user.toString() === userId.toString()
+        );
+
+        return {
+            rank: userIndex >= 0 ? userIndex + 1 : null,
+            totalPlayers: allCharacterStats.length
+        };
+    } catch (error) {
+        console.error('Calculate character rank error:', error);
+        return { rank: null, totalPlayers: 0 };
+    }
+};
+
+
 // @route   GET /api/user/stats
 // @desc    Get current user's overall stats
 // @access  Private
@@ -44,7 +101,7 @@ const getUserStats = async (req, res) => {
         const statsByMode = {
             '1v1_ranked': { matches: 0, wins: 0, losses: 0, mmr: 1000 },
             '2v2_ranked': { matches: 0, wins: 0, losses: 0, mmr: 1000 },
-            '3v3_ranked': { matches: 0, wins: 0, losses: 0, mmr: 1000 }
+            '3v3_ranked': { matches: 0, wins: 0, losses: 0, mmr: 1000 },
         };
 
         // Character data
@@ -65,8 +122,8 @@ const getUserStats = async (req, res) => {
             currentWinStreak = stat.stats.currentWinStreak;
 
             // Highest MMR (check if it's higher than starting point 1000)
-            if (stat.peakAccountMMR > highestMMR) {
-                highestMMR = stat.peakAccountMMR;
+            if (stat.peakAccountMMR > highestAccountMMR) {
+                highestAccountMMR = stat.peakAccountMMR;
             }
 
             // By game mode
@@ -94,7 +151,8 @@ const getUserStats = async (req, res) => {
                     assists: 0,
                     damageDealt: 0,
                     damageTaken: 0,
-                    highestMMR: 0
+                    highestCharacterMMR: 0,
+                    currentCharacterMMR: 0
                 });
             }
 
@@ -107,20 +165,48 @@ const getUserStats = async (req, res) => {
             charData.assists += stat.stats.totalAssists;
             charData.damageDealt += stat.stats.totalDamageDealt;
             charData.damageTaken += stat.stats.totalDamageTaken;
-            if (stat.characterMMR > charData.highestMMR) {
-                charData.highestMMR = stat.characterMMR;
+            charData.currentCharacterMMR = stat.characterMMR;
+            if (stat.characterMMR > charData.highestCharacterMMR) {
+                charData.highestCharacterMMR = stat.characterMMR;
             }
         });
 
-        // Get top 3 characters by matches played
+        // Calculate ranks for each game mode
+        for (const mode of ['1v1_ranked', '2v2_ranked', '3v3_ranked']) {
+            const rankData = await calculateRank(userId, mode);
+            statsByMode[mode].rank = rankData.rank;
+            statsByMode[mode].totalPlayers = rankData.totalPlayers;
+        }
+
+        // Get top 3 characters by Current MMR
         const topCharacters = Array.from(characterMap.values())
-            .sort((a, b) => b.matches - a.matches)
+            .sort((a, b) => b.currentCharacterMMR - a.currentCharacterMMR)
             .slice(0, 3)
-            .map(char => ({
-                ...char,
-                winRate: char.matches > 0? ((char.wins / char.matches) * 100).toFixed(1) : 0,
-                kda: char.deaths > 0 ? (char.kills / char.deaths).toFixed(2) : totalKills
-            }));
+
+            // Calculate rank for each top character (aggregate across all modes)
+            const topCharactersWithRanks = await Promise.all(
+                topCharacters.map(async (char) => {
+                    // Get user's best rank with this character across all modes
+                    let bestRank = null;
+                    let bestRankMode = null;
+
+                    for (const mode of ['1v1_ranked', '2v2_ranked', '3v3_ranked']) {
+                        const rankData = await calculateCharacterRank(userId, char._id, mode);
+                        if (rankData.rank && (!bestRank || rankData.rank < bestRank)) {
+                            bestRank = rankData.rank;
+                            bestRankMode = mode;
+                        }
+                    }
+
+                    return {
+                        ...char,
+                        winRate: char.matches > 0 ? ((char.wins / char.matches) * 100).toFixed(1) : 0,
+                        kda: char.deaths > 0 ? (char.kills / char.deaths).toFixed(2) : totalKills,
+                        rank: bestRank,
+                        rankMode: bestRankMode
+                    };
+                })
+            );
         
         res.json({
             totalMatches,
@@ -131,9 +217,9 @@ const getUserStats = async (req, res) => {
             totalDeaths,
             totalAssists,
             kda: totalDeaths > 0 ? (totalKills / totalDeaths).toFixed(2) : totalKills,
-            highestMMR: Math.round(highestMMR),
+            highestAccountMMR: Math.round(highestAccountMMR),
             statsByMode,
-            topCharacters,
+            topCharacters: topCharactersWithRanks,
             totalDamageDealt,
             totalDamageTaken,
             currentAccountMMR,
