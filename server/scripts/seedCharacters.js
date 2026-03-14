@@ -9,6 +9,8 @@ const characters = [
         image: 'lion.png',
         role: 'fighter',
         difficulty: 1,
+        color: '#ddb00f',
+        textColor: "#000000",
         abilities: [
             // Damage numbers and cooldowns will need to be adjusted later
             // These are just for placeholders
@@ -51,6 +53,8 @@ const characters = [
         image: 'bull.png',
         role: 'fighter',
         difficulty: 1,
+        color: '#b26d0c',
+        textColor: "#000000",
         abilities: [
             {
                 name: 'Charge',
@@ -90,6 +94,8 @@ const characters = [
         image: 'porcupine.png',
         role: 'tank',
         difficulty: 3,
+        color: '#37270b',
+        textColor: "#ffffff",
         abilities: [
             {
                 name: 'Quill',
