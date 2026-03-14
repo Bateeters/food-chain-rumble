@@ -1,5 +1,6 @@
 import React from "react";
 import './CharacterCard.css';
+import CharacterIcon from "./CharacterIcon";
 
 const CharacterCard = ({ character, onClick }) => {
     const getRoleColor = (role) => {
@@ -26,7 +27,7 @@ const CharacterCard = ({ character, onClick }) => {
             <div className='character-card-header'>
                 <div className='character-image-container'>
                     <div className='character-image-placeholder'>
-                        {character.name.charAt(0)}
+                        <CharacterIcon character={character}/>
                     </div>
                 </div>
                 <div

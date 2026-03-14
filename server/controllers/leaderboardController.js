@@ -262,6 +262,9 @@ const getOverallLeaderboard = async (req, res) => {
                     _id: char.character,
                     name: details?.name || 'Unknown',
                     image: details?.image || 'default.png',
+                    primaryColor: details?.primaryColor || '#eeeeee',     // ← ADD
+                    secondaryColor: details?.secondaryColor || '#999999', // ← ADD
+                    textColor: details?.textColor || '#000000', 
                     mmr: char.characterMMR,
                     matches: char.matches,
                     wins: char.wins

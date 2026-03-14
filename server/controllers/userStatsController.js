@@ -68,7 +68,7 @@ const getUserStats = async (req, res) => {
 
         // Get all stats for this user across all game modes and characters
         const allStats = await PlayerStats.find({ user: userId })
-            .populate('character', 'name image')
+            .populate('character', 'name image primaryColor secondaryColor textColor')
             .lean();
 
         if (allStats.length === 0) {
@@ -143,6 +143,9 @@ const getUserStats = async (req, res) => {
                     _id: stat.character._id,
                     name: stat.character.name,
                     image: stat.character.image,
+                    primaryColor: stat.character.primaryColor,
+                    secondaryColor: stat.character.secondaryColor,
+                    textColor: stat.character.textColor,
                     matches: 0,
                     wins: 0,
                     losses: 0,
@@ -181,32 +184,32 @@ const getUserStats = async (req, res) => {
         // Get top 3 characters by Current MMR
         const topCharacters = Array.from(characterMap.values())
             .sort((a, b) => b.currentCharacterMMR - a.currentCharacterMMR)
-            .slice(0, 3)
+            .slice(0, 3);
 
-            // Calculate rank for each top character (aggregate across all modes)
-            const topCharactersWithRanks = await Promise.all(
-                topCharacters.map(async (char) => {
-                    // Get user's best rank with this character across all modes
-                    let bestRank = null;
-                    let bestRankMode = null;
+        // Calculate rank for each top character (aggregate across all modes)
+        const topCharactersWithRanks = await Promise.all(
+            topCharacters.map(async (char) => {
+                // Get user's best rank with this character across all modes
+                let bestRank = null;
+                let bestRankMode = null;
 
-                    for (const mode of ['1v1_ranked', '2v2_ranked', '3v3_ranked']) {
-                        const rankData = await calculateCharacterRank(userId, char._id, mode);
-                        if (rankData.rank && (!bestRank || rankData.rank < bestRank)) {
-                            bestRank = rankData.rank;
-                            bestRankMode = mode;
-                        }
+                for (const mode of ['1v1_ranked', '2v2_ranked', '3v3_ranked']) {
+                    const rankData = await calculateCharacterRank(userId, char._id, mode);
+                    if (rankData.rank && (!bestRank || rankData.rank < bestRank)) {
+                        bestRank = rankData.rank;
+                        bestRankMode = mode;
                     }
+                }
 
-                    return {
-                        ...char,
-                        winRate: char.matches > 0 ? ((char.wins / char.matches) * 100).toFixed(1) : 0,
-                        kda: char.deaths > 0 ? (char.kills / char.deaths).toFixed(2) : totalKills,
-                        rank: bestRank,
-                        rankMode: bestRankMode
-                    };
-                })
-            );
+                return {
+                    ...char,
+                    winRate: char.matches > 0 ? ((char.wins / char.matches) * 100).toFixed(1) : 0,
+                    kda: char.deaths > 0 ? (char.kills / char.deaths).toFixed(2) : char.kills, // ✅ Fixed: use char.kills not totalKills
+                    rank: bestRank,
+                    rankMode: bestRankMode
+                };
+            })
+        );
         
         res.json({
             totalMatches,

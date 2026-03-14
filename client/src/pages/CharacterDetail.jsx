@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchCharacterById, clearSelectedCharacter } from '../store/slices/characterSlice';
 import './CharacterDetail.css';
+import CharacterIcon from "../components/character/CharacterIcon";
 
 const CharacterDetail = () => {
     const { id } = useParams();
@@ -77,7 +78,7 @@ const CharacterDetail = () => {
                 {/* Header Section */}
                 <div className="character-header">
                     <div className="character-image-large">
-                        {character.name.charAt(0)}
+                        <CharacterIcon character={character} />
                     </div>
                     <div className="character-header-info">
                         <h1 className="character-title">{character.name}</h1>

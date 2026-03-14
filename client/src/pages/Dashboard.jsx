@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchUserStats, fetchRecentMatches } from '../store/slices/userStatsSlice';
 import './Dashboard.css';
+import CharacterIcon from '../components/character/CharacterIcon';
 
 // Helper function to get rank tier and division from MMR
 const getRankFromMMR = (mmr) => {
@@ -186,7 +187,7 @@ const Dashboard = () => {
                   <div className='character-rank'>#{index + 1}</div>
                   <div className='character-info'>
                     <div className='character-icon'>
-                      {char.name.charAt(0)}
+                      <CharacterIcon character={char} />
                     </div>
                     <h3>{char.name}</h3>
                   </div>

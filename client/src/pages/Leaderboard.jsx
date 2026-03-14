@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { fetchOverallLeaderboard, fetchCharacterLeaderboard, clearLeaderboard } from '../store/slices/leaderboardSlice';
 import { fetchCharacters } from '../store/slices/characterSlice';
 import './Leaderboard.css';
+import CharacterIcon from '../components/character/CharacterIcon';
 
 const Leaderboard = () => {
   const dispatch = useDispatch();
@@ -193,7 +194,7 @@ const Leaderboard = () => {
                               {player.topCharacters?.slice(0,3).map((char, idx) => (
                                 <div key={idx} className='character-mini' title={`${char.name}: ${char.mmr} MMR`}>
                                   <div className='character-mini-icon' onClick={() => handleCharacterClick(char._id)}>
-                                    {char.name.charAt(0)}
+                                    <CharacterIcon character={char} />
                                   </div>
                                 </div>
                               ))}

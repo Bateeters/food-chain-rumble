@@ -114,6 +114,18 @@ const characterSchema = new mongoose.Schema({
             type: Number,
             default: 0
         }
+    },
+    primaryColor: {
+        type: String,
+        default: '#eeeeee'
+    },
+    secondaryColor: {
+        type: String,
+        default: '#999999'
+    },
+    textColor: {
+        type: String,
+        default: '#000000'
     }
 },{
     timestamps: true
