@@ -203,7 +203,7 @@ const getPostsInBoard = async (req, res) => {
         const total = await ForumPost.countDocuments({ board: boardId });
 
         res.json({
-            post,
+            posts,
             pagination: {
                 page: Number(page),
                 limit: Number(limit),
@@ -282,7 +282,8 @@ const createPost = async (req, res) => {
         });
 
         // Update board stats
-        board.postCound += 1;
+        board.postCount += 1;
+        board.stats.totalPosts += 1;
         board.latestPost = {
             _id: post._id,
             title: post.title,
@@ -685,7 +686,7 @@ const deleteComment = async (req, res) => {
             await post.save();
         }
 
-        await comment.deletedAt();
+        await comment.deletedOne();
 
         res.json({
             message: 'Comment deleted successfully'
@@ -728,38 +729,32 @@ const votePost = async (req, res) => {
         const userId = req.user.id;
 
         // Check if user already voted
-        const hasUpvoted = post.upvotedBy.includes(userId);
-        const hasDownvoted = post.downvotedBy.includes(userId);
+        const hasUpvoted = post.votes.upvotes.includes(userId);
+        const hasDownvoted = post.votes.downvotes.includes(userId);
 
         if (voteType === 'upvote') {
             if (hasUpvoted) {
                 // Remove upvote
-                post.upvotedBy.pull(userId);
-                post.upvotes -= 1;
+                post.votes.upvotes.pull(userId);
             } else {
                 // Add upvote
-                post.upvotedBy.push(userId);
-                post.upvotes += 1;
+                post.votes.upvotes.push(userId);
                 // Remove downvote if exists
                 if (hasDownvoted) {
-                    post.downvotedBy.pull(userId);
-                    post.downvotes -= 1;
+                    post.votes.downvotes.pull(userId);
                 }
             }
         } else {
             // downvote
             if (hasDownvoted) {
                 // Remove downvote
-                post.downvotedBy.pull(userId);
-                post.downvotes -= 1;
+                post.votes.downvotes.pull(userId);
             } else {
                 // Add downvote
-                post.downvotedBy.push(userId);
-                post.downvotes += 1;
+                post.votes.downvotes.push(userId);
                 // Remove upvote if exists
                 if (hasUpvoted) {
-                    post.upvotedBy.pull(userId);
-                    post.upvotes -= 1;
+                    post.votes.upvotes.pull(userId);
                 }
             }
         }
@@ -768,11 +763,11 @@ const votePost = async (req, res) => {
 
         res.json({
             message: 'Vote registered successfully',
-            upvotes: post.upvotes,
-            downvotes: post.downvotes,
+            upvotes: post.votes.upvotes.length,
+            downvotes: post.votes.downvotes.length,
             userVote: 
-                post.upvotedBy.includes(userId) ? 'upvote' :
-                post.downvotedBy.includes(userId) ? 'downvote' : null
+                post.votes.upvotes.includes(userId) ? 'upvote' :
+                post.votes.downvotes.includes(userId) ? 'downvote' : null
         });
 
     } catch (error) {
@@ -807,31 +802,25 @@ const voteComment = async (req, res) => {
 
         const userId = req.user.id;
 
-        const hasUpvoted = comment.upvotedBy.includes(userId);
-        const hasDownvoted = comment.downvotedBy.includes(userId);
+        const hasUpvoted = comment.votes.upvotes.includes(userId);
+        const hasDownvoted = comment.votes.downvotes.includes(userId);
 
         if (voteType === 'upvote') {
             if (hasUpvoted) {
-                comment.upvotedBy.pull(userId);
-                comment.upvotes -= 1;
+                comment.votes.upvotes.pull(userId);
             } else {
-                comment.upvotedBy.push(userId);
-                comment.upvotes += 1;
+                comment.votes.upvotes.push(userId);
                 if (hasDownvoted) {
-                    comment.downvotedBy.pull(userId);
-                    comment.downvotes -= 1;
+                    comment.votes.downvotes.pull(userId);
                 }
             }
         } else {
             if (hasDownvoted) {
-                comment.downvotedBy.pull(userId);
-                comment.downvotes -= 1;
+                comment.votes.downvotes.pull(userId);
             } else {
-                comment.downvotedBy.push(userId);
-                comment.downvotes += 1;
+                comment.votes.downvotes.push(userId);
                 if (hasUpvoted) {
-                    comment.upvotedBy.pull(userId);
-                    comment.upvotes -= 1;
+                    comment.votes.upvotes.pull(userId);
                 }
             }
         }
@@ -840,11 +829,11 @@ const voteComment = async (req, res) => {
 
         res.json({
             message: 'Vote registered successfully',
-            upvotes: comment.upvotes,
-            downvotes: comment.downvotes,
+            upvotes: comment.votes.upvotes.length,
+            downvotes: comment.votes.downvotes.length,
             userVote: 
-                comment.upvotedBy.includes(userId) ? 'upvote' :
-                comment.downvotedBy.includes(userId) ? 'downvote' : null
+                comment.votes.upvotes.includes(userId) ? 'upvote' :
+                comment.votes.downvotes.includes(userId) ? 'downvote' : null
         });
 
     } catch (error) {
