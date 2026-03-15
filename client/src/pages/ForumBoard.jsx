@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams, useNavigate } from 'react-router-dom';
-import { fetchBoardBySlug, fetchPostsInBoard } from '../store/slices/forumSlice';
+import { fetchBoardBySlug, fetchPostsInBoard, clearPosts } from '../store/slices/forumSlice';
 import UserAvatar from '../components/user/UserAvatar';
 import './ForumBoard.css';
 import CreatePostModal from '../components/forum/CreatePostModal';
@@ -21,8 +21,13 @@ const ForumBoard = () => {
 
   useEffect(() => {
     if (slug) {
+      dispatch(clearPosts());
       dispatch(fetchBoardBySlug(slug));
     }
+
+    return () => {
+      dispatch(clearPosts());
+    };
   }, [dispatch, slug]);
 
   useEffect(() => {

@@ -171,6 +171,10 @@ const forumSlice = createSlice({
         clearCreateSuccess: (state) => {
             state.createPostSuccess = false;
             state.createCommentSuccess = false;
+        },
+        clearPosts: (state) => {
+            state.posts =[];
+            state.currentBoard = null;
         }
     },
     extraReducers: (builder) => {
@@ -317,5 +321,5 @@ const forumSlice = createSlice({
     }
 });
 
-export const { clearError, clearCurrentPost, clearCreateSuccess } = forumSlice.actions;
+export const { clearError, clearCurrentPost, clearCreateSuccess, clearPosts } = forumSlice.actions;
 export default forumSlice.reducer;
