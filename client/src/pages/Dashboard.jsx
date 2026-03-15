@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { fetchUserStats, fetchRecentMatches } from '../store/slices/userStatsSlice';
 import './Dashboard.css';
 import CharacterIcon from '../components/character/CharacterIcon';
+import MatchDetailModal from '../components/match/MatchDetailModal';
 
 // Helper function to get rank tier and division from MMR
 const getRankFromMMR = (mmr) => {
@@ -33,6 +34,8 @@ const Dashboard = () => {
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
   const { stats, recentMatches, isLoading, error } = useSelector((state) => state.userStats);
+
+  const [selectedMatch, setSelectedMatch] = useState(null);
 
   useEffect(() => {
     dispatch(fetchUserStats());
@@ -256,7 +259,12 @@ const Dashboard = () => {
           {recentMatches && recentMatches.length > 0 ? (
             <div className='matches-list'>
               {recentMatches.map((match) => (
-                <div key={match._id} className={`match-card ${match.result}`}>
+                <div
+                  key={match._id}
+                  className={`match-card ${match.result}`}
+                  onClick={() => setSelectedMatch(match)}
+                  style={{ cursor:'pointer' }}  
+                >
                   <div className='match-result'>
                     <div className={`result-badge ${match.result}`}>
                       {match.result === 'win' ? 'WIN' : 'LOSS'}
@@ -296,6 +304,14 @@ const Dashboard = () => {
           )}
         </div>
       </div>
+
+      {/* Match Detail Modal */}
+      {selectedMatch && (
+        <MatchDetailModal
+          match={selectedMatch}
+          onClose={() => setSelectedMatch(null)}
+          />
+      )}
     </div> 
   );
 };
