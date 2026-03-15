@@ -69,166 +69,184 @@ const seedTestData = async () => {
         }
         console.log('✅ Created character-specific player stats');
 
-        console.log('Generating 100 random matches...');
-        const matchCount = 100;
-        
-        for (let i = 0; i < matchCount; i++) {
-            const gameMode = gameModes[Math.floor(Math.random() * gameModes.length)];
-            const teamSize = parseInt(gameMode.charAt(0));
-            
-            const shuffledUsers = [...testUsers].sort(() => Math.random() - 0.5);
-            const team1Users = shuffledUsers.slice(0, teamSize);
-            const team2Users = shuffledUsers.slice(teamSize, teamSize * 2);
-            
-            const winningTeam = Math.random() > 0.5 ? 1 : 2;
-            
-            // Build players array with correct structure
-            const players = [];
-            
-            // Team 1 players
-            for (const user of team1Users) {
-                const character = characters[Math.floor(Math.random() * characters.length)];
-                players.push({
-                    user: user._id,
-                    character: character._id,
-                    team: 1,
-                    talents: {
-                        greater: null,
-                        lesser: []
-                    },
-                    stats: {
-                        kills: Math.floor(Math.random() * 15),
-                        deaths: Math.floor(Math.random() * 10),
-                        assists: Math.floor(Math.random() * 10),
-                        damageDealt: Math.floor(Math.random() * 50000),
-                        damageTaken: Math.floor(Math.random() * 40000),
-                        abilitiesUsed: Math.floor(Math.random() * 30),
-                        highestPercentage: Math.floor(Math.random() * 200)
-                    },
-                    result: winningTeam === 1 ? 'win' : 'loss'
-                });
-            }
-            
-            // Team 2 players
-            for (const user of team2Users) {
-                const character = characters[Math.floor(Math.random() * characters.length)];
-                players.push({
-                    user: user._id,
-                    character: character._id,
-                    team: 2,
-                    talents: {
-                        greater: null,
-                        lesser: []
-                    },
-                    stats: {
-                        kills: Math.floor(Math.random() * 15),
-                        deaths: Math.floor(Math.random() * 10),
-                        assists: Math.floor(Math.random() * 10),
-                        damageDealt: Math.floor(Math.random() * 50000),
-                        damageTaken: Math.floor(Math.random() * 40000),
-                        abilitiesUsed: Math.floor(Math.random() * 30),
-                        highestPercentage: Math.floor(Math.random() * 200)
-                    },
-                    result: winningTeam === 2 ? 'win' : 'loss'
-                });
-            }
-            
-            const matchEndTime = new Date(Date.now() - Math.floor(Math.random() * 7 * 24 * 60 * 60 * 1000));
-            const matchDuration = 600 + Math.floor(Math.random() * 1200); // 10-30 minutes
-            const matchStartTime = new Date(matchEndTime.getTime() - matchDuration * 1000);
-            
-            // Create match
-            const match = await Match.create({
-                gameMode: gameMode,
-                players: players,
-                winningTeam: winningTeam,
-                duration: matchDuration,
-                arena: 'Test Arena',
-                startedAt: matchStartTime,
-                endedAt: matchEndTime,
-                serverRegion: 'NA'
-            });
+        console.log('Generating matches (ensuring all users participate)...');
+        const arenas = ['Savanna Plateau', 'Arctic Tundra', 'Coral Reef', 'Volcanic Rift', 'Forest Canopy', 'Desert Oasis'];
 
-            // Update PlayerStats for all players
-            for (const playerData of match.players) {
-                const isWinner = playerData.result === 'win';
+        // First, create 10 matches for EACH user to guarantee participation
+        console.log('Creating guaranteed matches for each user...');
+        for (const user of testUsers) {
+            for (let i = 0; i < 10; i++) {
+                const gameMode = gameModes[Math.floor(Math.random() * gameModes.length)];
+                const teamSize = parseInt(gameMode.charAt(0));
+                const arena = arenas[Math.floor(Math.random() * arenas.length)];
                 
-                const stats = await PlayerStats.findOne({
-                    user: playerData.user,
-                    gameMode: gameMode,
-                    character: playerData.character
+                // This user is always on team 1
+                const myTeam = 1;
+                const winningTeam = Math.random() > 0.5 ? 1 : 2;
+                
+                const players = [];
+                
+                // Add this user to team 1
+                const myCharacter = characters[Math.floor(Math.random() * characters.length)];
+                players.push({
+                    user: user._id,
+                    character: myCharacter._id,
+                    team: myTeam,
+                    talents: { greater: null, lesser: [] },
+                    stats: {
+                        kills: Math.floor(Math.random() * 20) + 1,
+                        deaths: Math.floor(Math.random() * 15) + 1,
+                        assists: Math.floor(Math.random() * 18) + 1,
+                        damageDealt: Math.floor(Math.random() * 50000) + 20000,
+                        damageTaken: Math.floor(Math.random() * 40000) + 15000,
+                        abilitiesUsed: Math.floor(Math.random() * 35) + 5,
+                        highestPercentage: Math.floor(Math.random() * 150) + 50
+                    },
+                    result: winningTeam === myTeam ? 'win' : 'loss'
+                });
+                
+                // Add teammates for team 1 (if 2v2 or 3v3)
+                for (let t = 1; t < teamSize; t++) {
+                    const teammate = testUsers[Math.floor(Math.random() * testUsers.length)];
+                    const teammateChar = characters[Math.floor(Math.random() * characters.length)];
+                    players.push({
+                        user: teammate._id,
+                        character: teammateChar._id,
+                        team: myTeam,
+                        talents: { greater: null, lesser: [] },
+                        stats: {
+                            kills: Math.floor(Math.random() * 20) + 1,
+                            deaths: Math.floor(Math.random() * 15) + 1,
+                            assists: Math.floor(Math.random() * 18) + 1,
+                            damageDealt: Math.floor(Math.random() * 50000) + 20000,
+                            damageTaken: Math.floor(Math.random() * 40000) + 15000,
+                            abilitiesUsed: Math.floor(Math.random() * 35) + 5,
+                            highestPercentage: Math.floor(Math.random() * 150) + 50
+                        },
+                        result: winningTeam === myTeam ? 'win' : 'loss'
+                    });
+                }
+                
+                // Add opponents for team 2
+                for (let t = 0; t < teamSize; t++) {
+                    const opponent = testUsers[Math.floor(Math.random() * testUsers.length)];
+                    const opponentChar = characters[Math.floor(Math.random() * characters.length)];
+                    players.push({
+                        user: opponent._id,
+                        character: opponentChar._id,
+                        team: 2,
+                        talents: { greater: null, lesser: [] },
+                        stats: {
+                            kills: Math.floor(Math.random() * 20) + 1,
+                            deaths: Math.floor(Math.random() * 15) + 1,
+                            assists: Math.floor(Math.random() * 18) + 1,
+                            damageDealt: Math.floor(Math.random() * 50000) + 20000,
+                            damageTaken: Math.floor(Math.random() * 40000) + 15000,
+                            abilitiesUsed: Math.floor(Math.random() * 35) + 5,
+                            highestPercentage: Math.floor(Math.random() * 150) + 50
+                        },
+                        result: winningTeam === 2 ? 'win' : 'loss'
+                    });
+                }
+                
+                const matchEndTime = new Date(Date.now() - Math.floor(Math.random() * 30 * 24 * 60 * 60 * 1000));
+                const matchDuration = 600 + Math.floor(Math.random() * 1800);
+                const matchStartTime = new Date(matchEndTime.getTime() - matchDuration * 1000);
+                
+                const match = await Match.create({
+                    gameMode,
+                    players,
+                    winningTeam,
+                    duration: matchDuration,
+                    arena,
+                    startedAt: matchStartTime,
+                    endedAt: matchEndTime,
+                    serverRegion: 'NA'
                 });
 
-                if (stats) {
-                    stats.stats.totalMatches += 1;
-                    stats.stats.wins += isWinner ? 1 : 0;
-                    stats.stats.losses += isWinner ? 0 : 1;
-                    stats.stats.totalKills += playerData.stats.kills;
-                    stats.stats.totalDeaths += playerData.stats.deaths;
-                    stats.stats.totalAssists += playerData.stats.assists;
-                    stats.stats.totalDamageDealt += playerData.stats.damageDealt;
-                    stats.stats.totalDamageTaken += playerData.stats.damageTaken;
+                // Update stats for all players
+                for (const playerData of match.players) {
+                    const isWinner = playerData.result === 'win';
                     
-                    if (isWinner) {
-                        stats.stats.currentWinStreak += 1;
-                        if (stats.stats.currentWinStreak > stats.stats.longestWinStreak) {
-                        stats.stats.longestWinStreak = stats.stats.currentWinStreak;
+                    const stats = await PlayerStats.findOne({
+                        user: playerData.user,
+                        gameMode: gameMode,
+                        character: playerData.character
+                    });
+
+                    if (stats) {
+                        stats.stats.totalMatches += 1;
+                        stats.stats.wins += isWinner ? 1 : 0;
+                        stats.stats.losses += isWinner ? 0 : 1;
+                        stats.stats.totalKills += playerData.stats.kills;
+                        stats.stats.totalDeaths += playerData.stats.deaths;
+                        stats.stats.totalAssists += playerData.stats.assists;
+                        stats.stats.totalDamageDealt += playerData.stats.damageDealt;
+                        stats.stats.totalDamageTaken += playerData.stats.damageTaken;
+                        
+                        if (isWinner) {
+                            stats.stats.currentWinStreak += 1;
+                            if (stats.stats.currentWinStreak > stats.stats.longestWinStreak) {
+                                stats.stats.longestWinStreak = stats.stats.currentWinStreak;
+                            }
+                        } else {
+                            stats.stats.currentWinStreak = 0;
                         }
-                    } else {
-                        stats.stats.currentWinStreak = 0;
+                        
+                        const mmrChange = isWinner ? 25 : -20;
+                        stats.accountMMR = Math.max(0, stats.accountMMR + mmrChange);
+                        stats.characterMMR = Math.max(0, stats.characterMMR + mmrChange);
+                        
+                        if (stats.accountMMR > stats.peakAccountMMR) {
+                            stats.peakAccountMMR = stats.accountMMR;
+                        }
+                        if (stats.characterMMR > stats.peakCharacterMMR) {
+                            stats.peakCharacterMMR = stats.characterMMR;
+                        }
+                        
+                        stats.lastPlayed = matchEndTime;
+                        await stats.save();
                     }
-                    
-                    const mmrChange = isWinner ? 25 : -20;
-                    stats.accountMMR = Math.max(0, stats.accountMMR + mmrChange);
-                    stats.characterMMR = Math.max(0, stats.characterMMR + mmrChange); // ✅ ADD THIS
-                    
-                    if (stats.accountMMR > stats.peakAccountMMR) {
-                        stats.peakAccountMMR = stats.accountMMR;
-                    }
-                    if (stats.characterMMR > stats.peakCharacterMMR) { // ✅ ADD THIS
-                        stats.peakCharacterMMR = stats.characterMMR;
-                    }
-                    
-                    stats.lastPlayed = new Date();
-                    
-                    await stats.save();
                 }
             }
         }
-        
-        console.log('✅ Generated 100 matches and updated stats');
+
+        const totalMatches = await Match.countDocuments();
+        console.log(`✅ Created ${totalMatches} total matches (10 per user minimum)`);
 
         // Show overall leaderboard (highest account MMR across all characters)
         const topPlayersByHighestMMR = await PlayerStats.aggregate([
-        { $match: { gameMode: '1v1_ranked' } },
-        {
-            $group: {
-            _id: '$user',
-            highestMMR: { $max: '$accountMMR' },
-            totalGames: { $sum: '$stats.totalMatches' },
-            totalWins: { $sum: '$stats.wins' },
-            totalLosses: { $sum: '$stats.losses' }
-            }
-        },
-        { $sort: { highestMMR: -1 } },
-        { $limit: 5 },
-        {
-            $lookup: {
-            from: 'users',
-            localField: '_id',
-            foreignField: '_id',
-            as: 'user'
-            }
-        },
-        { $unwind: '$user' }
+            { $match: { gameMode: '1v1_ranked' } },
+            {
+                $group: {
+                    _id: '$user',
+                    highestMMR: { $max: '$accountMMR' },
+                    totalGames: { $sum: '$stats.totalMatches' },
+                    totalWins: { $sum: '$stats.wins' },
+                    totalLosses: { $sum: '$stats.losses' }
+                }
+            },
+            { $sort: { highestMMR: -1 } },
+            { $limit: 5 },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: '_id',
+                    foreignField: '_id',
+                    as: 'user'
+                }
+            },
+            { $unwind: '$user' }
         ]);
 
-        console.log('\n📊 Top 5 Players (1v1 Ranked - Highest Account MMR):');
+        console.log('\n🏆 Top 5 Players (1v1 Ranked - Highest Account MMR):');
         topPlayersByHighestMMR.forEach((player, index) => {
-        console.log(`${index + 1}. ${player.user.username} - ${Math.round(player.highestMMR)} MMR (${player.totalWins}W-${player.totalLosses}L across ${player.totalGames} games)`);
+            console.log(`${index + 1}. ${player.user.username} - ${Math.round(player.highestMMR)} MMR (${player.totalWins}W-${player.totalLosses}L across ${player.totalGames} games)`);
         });
 
         console.log('\n✅ Test data seeded successfully!');
+        console.log('\n💡 You can now log in as any testuser (testuser1-20) with password: TestPass123!');
+        console.log('   Each user will have their own match history on the dashboard!');
         
         await mongoose.disconnect();
         process.exit(0);

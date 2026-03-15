@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchUserStats, fetchRecentMatches } from '../store/slices/userStatsSlice';
 import './Dashboard.css';
@@ -273,7 +273,7 @@ const Dashboard = () => {
 
                   <div className='match-character'>
                     <div className='match-char-icon'>
-                      {match.character.name.charAt(0)}
+                      <CharacterIcon character={match.character} />
                     </div>
                     <span className='match-char-name'>{match.character.name}</span>
                   </div>

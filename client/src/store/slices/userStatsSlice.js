@@ -67,7 +67,7 @@ const userStatsSlice = createSlice({
             })
             .addCase(fetchRecentMatches.fulfilled, (state, action) => {
                 state.isLoading = false;
-                state.recentMatches = action.payload;
+                state.recentMatches = action.payload.matches;
             })
             .addCase(fetchRecentMatches.rejected, (state, action) => {
                 state.isLoading = false;
