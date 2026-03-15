@@ -14,6 +14,9 @@ import Dashboard from './pages/Dashboard';
 import Characters from './pages/Characters';
 import CharacterDetail from './pages/CharacterDetail';
 import Leaderboard from './pages/Leaderboard';
+import Forum from './pages/Forum';
+import ForumBoard from './pages/ForumBoard';
+import ForumPost from './pages/ForumPost';
 
 import './App.css';
 
@@ -36,6 +39,9 @@ function App() {
           <Route path="/characters" element={<Characters />} />
           <Route path="/characters/:id" element={<CharacterDetail />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
+          <Route path='/forum' element={<Forum />} />
+          <Route path='/forum/:slug' element={<ForumBoard />} />
+          <Route path='/forum/posts/:postId' element={<ForumPost />} />
 
           {/* Protected Routes */}
           <Route
