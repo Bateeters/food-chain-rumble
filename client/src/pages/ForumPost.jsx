@@ -19,6 +19,7 @@ const ForumPost = () => {
 
   useEffect(() => {
     if (postId) {
+      console.log('Fetching post:', postId); //DEBUG
       dispatch(fetchPostById(postId));
       dispatch(fetchComments({ postId, params: { page: 1, limit: 50 } }));
     }
@@ -27,6 +28,15 @@ const ForumPost = () => {
       dispatch(clearCurrentPost());
     };
   }, [dispatch, postId]);
+
+  // DEBUG
+  useEffect(() => {
+    if (currentPost) {
+      console.log('📝 Current Post loaded:', currentPost);
+      console.log('🎯 Post userVote:', currentPost.userVote);
+      console.log('📊 Post voteScore:', currentPost.voteScore);
+    }
+  }, [currentPost]);
 
   const handleVote = (voteType) => {
     if (!user) {

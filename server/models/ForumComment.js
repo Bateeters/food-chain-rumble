@@ -72,7 +72,7 @@ forumCommentSchema.index({ parentComment: 1, createdAt: 1 });
 
 // Virtual: Calculate vote score
 forumCommentSchema.virtual('voteScore').get(function() {
-    return this.upvotes.length - this.votes.downvotes.length;
+    return (this.votes?.upvotes?.length || 0) - (this.votes?.downvotes?.length || 0);
 });
 
 // Include virtuals when converting to JSON

@@ -69,7 +69,15 @@ const Comment = ({ comment, postId, isReply = false }) => {
 
   const isAuthor = user && comment.author._id === user._id;
   const isModerator = user && (user.role === 'admin' || user.role === 'moderator');
-  const voteScore = (comment.votes?.upvotes?.length || 0) - (comment.votes?.downvotes?.length || 0);
+  const voteScore = comment.voteScore || 0;
+
+  console.log('💬 Comment voteScore:', {
+    commentId: comment._id,
+    voteScore,
+    userVote: comment.userVote,
+    upvotes: comment.votes?.upvotes?.length,
+    downvotes: comment.votes?.downvotes?.length
+  });
 
   return (
     <div className={`comment ${isReply ? 'comment-reply' : ''}`}>

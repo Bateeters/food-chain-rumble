@@ -37,6 +37,7 @@ const {
 
 // Import middleware
 const { protect, isAdmin, isModerator, isModeratorOrAdmin } = require('../middleware/auth');
+const { optionalAuth } = require('../middleware/optionalAuth');
 
 // ======================
 // BOARD ROUTES
@@ -74,7 +75,7 @@ router.delete('/boards/:id', protect, isAdmin, deleteBoard);
 // @route   GET /api/forum/boards/:boardId/posts
 // @desc    Get all post in a board (with sorting/filtering)
 // @access  Public
-router.get('/boards/:boardId/posts', getPostsInBoard);
+router.get('/boards/:boardId/posts', optionalAuth, getPostsInBoard);
 
 // @route   POST /api/forum/boards/:boardId/posts
 // @desc    Create a new post in a board
@@ -84,7 +85,7 @@ router.post('/boards/:boardId/posts', protect, createPost);
 // @route   GET /api/forum/posts/:id
 // @desc    Get a single post by ID (with comments)
 // @access  Public
-router.get('/posts/:id', getPostById);
+router.get('/posts/:id', optionalAuth, getPostById);
 
 // @route   PATCH /api/forum/posts/:id
 // @desc    Update a post (author or admin/mod only)
@@ -123,7 +124,7 @@ router.patch('/posts/:id/lock', protect, isModeratorOrAdmin, toggleLockPost);
 // @route   GET /api/forum/posts/:postId/comments
 // @desc    Get all comments for a post
 // @access  Public
-router.get('/posts/:postId/comments', getCommentsForPost);
+router.get('/posts/:postId/comments', optionalAuth, getCommentsForPost);
 
 // @route   POST /api/forum/posts/:postId/comments
 // @desc    Create a comment on a post

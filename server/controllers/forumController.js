@@ -206,17 +206,34 @@ const getPostsInBoard = async (req, res) => {
     try {
         const { boardId } = req.params;
         const { page = 1, limit = 20, sort = 'latest' } = req.query;
+        
+        // Get userId if logged in
+        const userId = req.user?.id || req.user?._id;
 
         const posts = await ForumPost.find({ board: boardId, isDeleted: false })
             .populate('author', 'username avatar')
             .populate('board', 'name slug')
             .lean();
         
-        // Calculate vote scores
-        const postsWithScores = posts.map(post => ({
-            ...post,
-            voteScore: (post.votes?.upvotes?.length || 0) - (post.votes?.downvotes?.length || 0)
-        }));
+        // Calculate vote scores and check user votes
+        const postsWithScores = posts.map(post => {
+            const voteScore = (post.votes?.upvotes?.length || 0) - (post.votes?.downvotes?.length || 0);
+            
+            let userVote = null;
+            if (userId) {
+                const hasUpvoted = post.votes?.upvotes?.some(id => id.toString() === userId.toString());
+                const hasDownvoted = post.votes?.downvotes?.some(id => id.toString() === userId.toString());
+                
+                if (hasUpvoted) userVote = 'upvote';
+                else if (hasDownvoted) userVote = 'downvote';
+            }
+            
+            return {
+                ...post,
+                voteScore,
+                userVote
+            };
+        });
 
         // Sort in memory
         let sortedPosts;
@@ -269,6 +286,10 @@ const getPostsInBoard = async (req, res) => {
 // @access  Public
 const getPostById = async (req, res) => {
     try {
+        console.log('🔍 req.user:', req.user); // ← ADD THIS
+        console.log('🔍 req.user?.id:', req.user?.id); // ← ADD THIS
+        console.log('🔍 req.user?._id:', req.user?._id); // ← ADD THIS
+        
         const post = await ForumPost.findById(req.params.id)
             .populate('author', 'username avatar')
             .populate('board', 'name slug');
@@ -280,10 +301,44 @@ const getPostById = async (req, res) => {
         }
 
         // Increment view count
-        post.viewCount += 1;
+        post.stats.viewCount += 1;
         await post.save();
 
-        res.json({ post });
+        const postObject = post.toObject();
+        
+        // Calculate vote score
+        postObject.voteScore = (post.votes?.upvotes?.length || 0) - (post.votes?.downvotes?.length || 0);
+        
+        // Check user's vote
+        const userId = req.user?.id || req.user?._id;
+        postObject.userVote = null;
+        
+        console.log('👤 Checking votes for userId:', userId); // ← ADD THIS
+        
+        if (userId) {
+            console.log('📊 Post votes:', {
+                upvotes: post.votes.upvotes,
+                downvotes: post.votes.downvotes
+            }); // ← ADD THIS
+            
+            const hasUpvoted = post.votes?.upvotes?.some(id => {
+                const match = id.toString() === userId.toString();
+                console.log(`Comparing ${id.toString()} === ${userId.toString()}: ${match}`); // ← ADD THIS
+                return match;
+            });
+            const hasDownvoted = post.votes?.downvotes?.some(id => id.toString() === userId.toString());
+            
+            console.log('✅ Vote check:', { hasUpvoted, hasDownvoted }); // ← ADD THIS
+            
+            if (hasUpvoted) postObject.userVote = 'upvote';
+            else if (hasDownvoted) postObject.userVote = 'downvote';
+        } else {
+            console.log('❌ No userId - user not authenticated'); // ← ADD THIS
+        }
+
+        console.log('📝 Final userVote:', postObject.userVote); // ← ADD THIS
+
+        res.json({ post: postObject });
 
     } catch (error) {
         console.error('Get post by ID error:', error);
@@ -530,27 +585,70 @@ const getCommentsForPost = async (req, res) => {
         const { postId } = req.params;
         const { page = 1, limit = 50 } = req.query;
 
+        const userId = req.user?.id || req.user?._id;
+
         // Get top-level comments (no parent)
         const comments = await Comment.find({
             post: postId,
-            parentComment: null
+            parentComment: null,
+            isDeleted: false
         })
             .populate('author', 'username avatar')
             .sort({ createdAt: 1 })
             .limit(limit * 1)
-            .skip((page - 1) * limit);
+            .skip((page - 1) * limit)
+            .lean();
         
         // Get replies for each comment (one level deep)
         for (let comment of comments) {
-            const replies = await Comment.find({ parentComment: comment._id })
+            // Calculate voteScore for comment
+            comment.voteScore = (comment.votes?.upvotes?.length || 0) - (comment.votes?.downvotes?.length || 0);
+            
+            const replies = await Comment.find({ 
+                parentComment: comment._id,
+                isDeleted: false
+            })
                 .populate('author', 'username avatar')
-                .sort({ createdAt: 1 });
-            comment._doc.replies = replies;
+                .sort({ createdAt: 1 })
+                .lean();
+            
+            // Add user vote status to replies
+            comment.replies = replies.map(reply => {
+                // Calculate voteScore for reply
+                const replyVoteScore = (reply.votes?.upvotes?.length || 0) - (reply.votes?.downvotes?.length || 0);
+                
+                let userVote = null;
+                if (userId) {
+                    const hasUpvoted = reply.votes?.upvotes?.some(id => id.toString() === userId.toString());
+                    const hasDownvoted = reply.votes?.downvotes?.some(id => id.toString() === userId.toString());
+                    
+                    if (hasUpvoted) userVote = 'upvote';
+                    else if (hasDownvoted) userVote = 'downvote';
+                }
+                
+                return {
+                    ...reply,
+                    voteScore: replyVoteScore,
+                    userVote
+                };
+            });
+            
+            // Add user vote status to main comment
+            let userVote = null;
+            if (userId) {
+                const hasUpvoted = comment.votes?.upvotes?.some(id => id.toString() === userId.toString());
+                const hasDownvoted = comment.votes?.downvotes?.some(id => id.toString() === userId.toString());
+                
+                if (hasUpvoted) userVote = 'upvote';
+                else if (hasDownvoted) userVote = 'downvote';
+            }
+            comment.userVote = userVote;
         }
 
         const total = await Comment.countDocuments({
             post: postId,
-            parentComment: null
+            parentComment: null,
+            isDeleted: false
         });
 
         res.json({
@@ -753,11 +851,14 @@ const deleteComment = async (req, res) => {
 // @access  Private
 const votePost = async (req, res) => {
     try {
-        const { voteType } = req.body; // up or downvote
+        const { voteType } = req.body;
 
-        if (!['upvote', 'downvote'].includes(voteType)) {
+        console.log('📥 Vote request received:', { voteType, user: req.user?.username });
+
+        // Allow null to remove vote, or upvote/downvote
+        if (voteType !== null && !['upvote', 'downvote'].includes(voteType)) {
             return res.status(400).json({
-                error: 'Invalid vote type. Must be "upvote" or "downvote"'
+                error: 'Invalid vote type. Must be "upvote", "downvote", or null to remove vote'
             });
         }
 
@@ -769,48 +870,61 @@ const votePost = async (req, res) => {
             });
         }
 
-        const userId = req.user.id;
+        const userId = req.user.id || req.user._id.toString();
 
-        // Check if user already voted
-        const hasUpvoted = post.votes.upvotes.includes(userId);
-        const hasDownvoted = post.votes.downvotes.includes(userId);
+        // Check current vote status
+        const hasUpvoted = post.votes.upvotes.some(id => id.toString() === userId.toString());
+        const hasDownvoted = post.votes.downvotes.some(id => id.toString() === userId.toString());
 
-        if (voteType === 'upvote') {
-            if (hasUpvoted) {
-                // Remove upvote
-                post.votes.upvotes.pull(userId);
-            } else {
-                // Add upvote
+        console.log('📊 Current vote status:', { hasUpvoted, hasDownvoted, requestedVote: voteType });
+
+        // Remove existing votes first
+        post.votes.upvotes = post.votes.upvotes.filter(id => id.toString() !== userId.toString());
+        post.votes.downvotes = post.votes.downvotes.filter(id => id.toString() !== userId.toString());
+
+        let newUserVote = null;
+
+        // If voteType is null, just remove votes (already done above)
+        if (voteType === null) {
+            console.log('🗑️ Removing vote');
+            newUserVote = null;
+        } else if (voteType === 'upvote') {
+            if (!hasUpvoted) {
+                // Add upvote (wasn't upvoted before)
                 post.votes.upvotes.push(userId);
-                // Remove downvote if exists
-                if (hasDownvoted) {
-                    post.votes.downvotes.pull(userId);
-                }
-            }
-        } else {
-            // downvote
-            if (hasDownvoted) {
-                // Remove downvote
-                post.votes.downvotes.pull(userId);
+                newUserVote = 'upvote';
+                console.log('➕ Adding upvote');
             } else {
-                // Add downvote
+                // Was already upvoted, removed above, don't re-add (toggle off)
+                console.log('🔄 Toggling off upvote');
+                newUserVote = null;
+            }
+        } else if (voteType === 'downvote') {
+            if (!hasDownvoted) {
+                // Add downvote (wasn't downvoted before)
                 post.votes.downvotes.push(userId);
-                // Remove upvote if exists
-                if (hasUpvoted) {
-                    post.votes.upvotes.pull(userId);
-                }
+                newUserVote = 'downvote';
+                console.log('➕ Adding downvote');
+            } else {
+                // Was already downvoted, removed above, don't re-add (toggle off)
+                console.log('🔄 Toggling off downvote');
+                newUserVote = null;
             }
         }
 
         await post.save();
 
+        console.log('✅ Final vote state:', {
+            upvotes: post.votes.upvotes.length,
+            downvotes: post.votes.downvotes.length,
+            newUserVote
+        });
+
         res.json({
             message: 'Vote registered successfully',
             upvotes: post.votes.upvotes.length,
             downvotes: post.votes.downvotes.length,
-            userVote: 
-                post.votes.upvotes.includes(userId) ? 'upvote' :
-                post.votes.downvotes.includes(userId) ? 'downvote' : null
+            userVote: newUserVote
         });
 
     } catch (error) {
@@ -829,9 +943,9 @@ const voteComment = async (req, res) => {
     try {
         const { voteType } = req.body;
 
-        if (!['upvote', 'downvote'].includes(voteType)) {
+        if (voteType !== null && !['upvote', 'downvote'].includes(voteType)) {
             return res.status(400).json({
-                error: 'Invalid vote type. Must be "upvote" or "downvote"'
+                error: 'Invalid vote type. Must be "upvote", "downvote", or null to remove vote'
             });
         }
 
@@ -843,28 +957,28 @@ const voteComment = async (req, res) => {
             });
         }
 
-        const userId = req.user.id;
+        const userId = req.user.id || req.user._id.toString();
 
-        const hasUpvoted = comment.votes.upvotes.includes(userId);
-        const hasDownvoted = comment.votes.downvotes.includes(userId);
+        const hasUpvoted = comment.votes.upvotes.some(id => id.toString() === userId.toString());
+        const hasDownvoted = comment.votes.downvotes.some(id => id.toString() === userId.toString());
 
-        if (voteType === 'upvote') {
-            if (hasUpvoted) {
-                comment.votes.upvotes.pull(userId);
-            } else {
+        // Remove existing votes
+        comment.votes.upvotes = comment.votes.upvotes.filter(id => id.toString() !== userId.toString());
+        comment.votes.downvotes = comment.votes.downvotes.filter(id => id.toString() !== userId.toString());
+
+        let newUserVote = null;
+
+        if (voteType === null) {
+            newUserVote = null;
+        } else if (voteType === 'upvote') {
+            if (!hasUpvoted) {
                 comment.votes.upvotes.push(userId);
-                if (hasDownvoted) {
-                    comment.votes.downvotes.pull(userId);
-                }
+                newUserVote = 'upvote';
             }
-        } else {
-            if (hasDownvoted) {
-                comment.votes.downvotes.pull(userId);
-            } else {
+        } else if (voteType === 'downvote') {
+            if (!hasDownvoted) {
                 comment.votes.downvotes.push(userId);
-                if (hasUpvoted) {
-                    comment.votes.upvotes.pull(userId);
-                }
+                newUserVote = 'downvote';
             }
         }
 
@@ -874,9 +988,7 @@ const voteComment = async (req, res) => {
             message: 'Vote registered successfully',
             upvotes: comment.votes.upvotes.length,
             downvotes: comment.votes.downvotes.length,
-            userVote: 
-                comment.votes.upvotes.includes(userId) ? 'upvote' :
-                comment.votes.downvotes.includes(userId) ? 'downvote' : null
+            userVote: newUserVote
         });
 
     } catch (error) {

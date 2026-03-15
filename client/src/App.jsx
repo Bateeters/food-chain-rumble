@@ -39,9 +39,9 @@ function App() {
           <Route path="/characters" element={<Characters />} />
           <Route path="/characters/:id" element={<CharacterDetail />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
-          <Route path='/forum' element={<Forum />} />
-          <Route path='/forum/:slug' element={<ForumBoard />} />
           <Route path='/forum/posts/:postId' element={<ForumPost />} />
+          <Route path='/forum/:slug' element={<ForumBoard />} />
+          <Route path='/forum' element={<Forum />} />
 
           {/* Protected Routes */}
           <Route

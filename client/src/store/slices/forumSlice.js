@@ -257,16 +257,19 @@ const forumSlice = createSlice({
         .addCase(voteOnPost.fulfilled, (state, action) => {
             const { postId, upvotes, downvotes, userVote } = action.payload;
             
-            // Update in posts list
+            // Calculate vote score
+            const voteScore = upvotes - downvotes;
+            
+            // Update in posts list (for board view)
             const postInList = state.posts.find(p => p._id === postId);
             if (postInList) {
-                postInList.votes = { upvotes: [], downvotes: [] }; // Reset
+                postInList.voteScore = voteScore;
                 postInList.userVote = userVote;
             }
             
-            // Update current post
+            // Update current post (for detail view)
             if (state.currentPost && state.currentPost._id === postId) {
-                state.currentPost.votes = { upvotes: [], downvotes: [] }; // Reset
+                state.currentPost.voteScore = voteScore;
                 state.currentPost.userVote = userVote;
             }
         })
@@ -310,14 +313,33 @@ const forumSlice = createSlice({
         
         // Vote on comment
         .addCase(voteOnComment.fulfilled, (state, action) => {
+            console.log('🟢 voteOnComment.fulfilled payload:', action.payload);
+            
             const { commentId, upvotes, downvotes, userVote } = action.payload;
             
+            const voteScore = upvotes - downvotes;
+            console.log('📊 Calculated voteScore:', voteScore);
+            
+            // Find comment in top-level comments
             const comment = state.comments.find(c => c._id === commentId);
             if (comment) {
-                comment.votes = { upvotes: [], downvotes: [] }; // Reset
+                console.log('✅ Found top-level comment, updating voteScore');
+                comment.voteScore = voteScore;
                 comment.userVote = userVote;
             }
-        });
+            
+            // Also check nested replies
+            state.comments.forEach(c => {
+                if (c.replies) {
+                    const reply = c.replies.find(r => r._id === commentId);
+                    if (reply) {
+                        console.log('✅ Found reply comment, updating voteScore');
+                        reply.voteScore = voteScore;
+                        reply.userVote = userVote;
+                    }
+                }
+            });
+        })
     }
 });
 
