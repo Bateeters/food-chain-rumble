@@ -19,13 +19,12 @@ const optionalAuth = async (req, res, next) => {
                 // Get user from token
                 req.user = await User.findById(decoded.id).select('-password');
                 
-                console.log('✅ Optional auth - User authenticated:', req.user?.username);
             } catch (err) {
                 // Token invalid but continue anyway
-                console.log('⚠️ Optional auth - Invalid token, continuing without auth');
+                console.log('Optional auth - Invalid token, continuing without auth');
             }
         } else {
-            console.log('ℹ️ Optional auth - No token provided, continuing without auth');
+            console.log('Optional auth - No token provided, continuing without auth');
         }
 
         next();

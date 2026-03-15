@@ -835,8 +835,6 @@ const votePost = async (req, res) => {
     try {
         const { voteType } = req.body;
 
-        console.log('📥 Vote request received:', { voteType, user: req.user?.username });
-
         // Allow null to remove vote, or upvote/downvote
         if (voteType !== null && !['upvote', 'downvote'].includes(voteType)) {
             return res.status(400).json({
@@ -858,8 +856,6 @@ const votePost = async (req, res) => {
         const hasUpvoted = post.votes.upvotes.some(id => id.toString() === userId.toString());
         const hasDownvoted = post.votes.downvotes.some(id => id.toString() === userId.toString());
 
-        console.log('📊 Current vote status:', { hasUpvoted, hasDownvoted, requestedVote: voteType });
-
         // Remove existing votes first
         post.votes.upvotes = post.votes.upvotes.filter(id => id.toString() !== userId.toString());
         post.votes.downvotes = post.votes.downvotes.filter(id => id.toString() !== userId.toString());
@@ -868,17 +864,14 @@ const votePost = async (req, res) => {
 
         // If voteType is null, just remove votes (already done above)
         if (voteType === null) {
-            console.log('🗑️ Removing vote');
             newUserVote = null;
         } else if (voteType === 'upvote') {
             if (!hasUpvoted) {
                 // Add upvote (wasn't upvoted before)
                 post.votes.upvotes.push(userId);
                 newUserVote = 'upvote';
-                console.log('➕ Adding upvote');
             } else {
                 // Was already upvoted, removed above, don't re-add (toggle off)
-                console.log('🔄 Toggling off upvote');
                 newUserVote = null;
             }
         } else if (voteType === 'downvote') {
@@ -886,21 +879,13 @@ const votePost = async (req, res) => {
                 // Add downvote (wasn't downvoted before)
                 post.votes.downvotes.push(userId);
                 newUserVote = 'downvote';
-                console.log('➕ Adding downvote');
             } else {
                 // Was already downvoted, removed above, don't re-add (toggle off)
-                console.log('🔄 Toggling off downvote');
                 newUserVote = null;
             }
         }
 
         await post.save();
-
-        console.log('✅ Final vote state:', {
-            upvotes: post.votes.upvotes.length,
-            downvotes: post.votes.downvotes.length,
-            newUserVote
-        });
 
         res.json({
             message: 'Vote registered successfully',

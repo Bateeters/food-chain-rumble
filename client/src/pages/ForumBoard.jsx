@@ -32,8 +32,6 @@ const ForumBoard = () => {
 
   useEffect(() => {
     if (currentBoard && currentBoard.slug === slug) {
-      console.log('CurrentBoard:', currentBoard);
-      console.log('CurrentBoard Color:', currentBoard.color);
 
       dispatch(fetchPostsInBoard({
         boardId: currentBoard._id,

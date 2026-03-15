@@ -2,17 +2,14 @@ import React from 'react';
 import './VoteButtons.css';
 
 const VoteButtons = ({ voteScore, userVote, onVote }) => {
-  console.log('🎨 VoteButtons props:', { voteScore, userVote });
-  
+
   const handleUpvote = () => {
     const newVote = userVote === 'upvote' ? null : 'upvote';
-    console.log('⬆️ Upvote clicked. Current:', userVote, '→ Sending:', newVote);
     onVote(newVote);
   };
 
   const handleDownvote = () => {
     const newVote = userVote === 'downvote' ? null : 'downvote';
-    console.log('⬇️ Downvote clicked. Current:', userVote, '→ Sending:', newVote);
     onVote(newVote);
   };
 

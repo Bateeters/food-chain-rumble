@@ -386,17 +386,13 @@ const forumSlice = createSlice({
 
         // Vote on comment
         .addCase(voteOnComment.fulfilled, (state, action) => {
-            console.log('🟢 voteOnComment.fulfilled payload:', action.payload);
             
             const { commentId, upvotes, downvotes, userVote } = action.payload;
-            
             const voteScore = upvotes - downvotes;
-            console.log('📊 Calculated voteScore:', voteScore);
             
             // Find comment in top-level comments
             const comment = state.comments.find(c => c._id === commentId);
             if (comment) {
-                console.log('✅ Found top-level comment, updating voteScore');
                 comment.voteScore = voteScore;
                 comment.userVote = userVote;
             }
@@ -406,7 +402,6 @@ const forumSlice = createSlice({
                 if (c.replies) {
                     const reply = c.replies.find(r => r._id === commentId);
                     if (reply) {
-                        console.log('✅ Found reply comment, updating voteScore');
                         reply.voteScore = voteScore;
                         reply.userVote = userVote;
                     }
