@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { logout } from '../../store/slices/authSlice';
 import './Header.css';
+import UserAvatar from '../user/UserAvatar';
 
 const Header = () => {
   const dispatch = useDispatch();
@@ -30,9 +31,10 @@ const Header = () => {
           
           {isAuthenticated ? (
             <>
-              <Link to="/dashboard" className="nav-link">Dashboard</Link>
+              <Link to="/dashboard" className="nav-link">
+                <UserAvatar user={user} size='small' showUsername={true} />
+              </Link>
               <div className="user-menu">
-                <span className="username">{user?.username}</span>
                 <button onClick={handleLogout} className="btn-logout">
                   Logout
                 </button>
