@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { voteOnComment, createComment } from '../../store/slices/forumSlice';
+import { voteOnComment, createComment, updateComment, deleteComment } from '../../store/slices/forumSlice';
 import UserAvatar from '../user/UserAvatar';
 import VoteButtons from './VoteButtons';
 import './Comment.css';
@@ -15,6 +15,9 @@ const Comment = ({ comment, postId, isReply = false }) => {
   const [replyText, setReplyText] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  const [isEditing, setIsEditing] = useState(false);
+  const [editText, setEditText] = useState(comment.content);
 
   const handleVote = (voteType) => {
     if (!user) {
@@ -51,6 +54,43 @@ const Comment = ({ comment, postId, isReply = false }) => {
     setIsSubmitting(false);
   };
 
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!editText.trim()) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    
+    try {
+      await dispatch(updateComment({
+        commentId: comment._id,
+        commentData: { content: editText.trim() }
+      })).unwrap();
+      
+      setIsEditing(false);
+    } catch (error) {
+      console.error('Failed to update comment:', error);
+    }
+    
+    setIsSubmitting(false);
+  };
+
+  const handleCancelEdit = () => {
+    setEditText(comment.content);
+    setIsEditing(false);
+  };
+
+  const handleDelete = async () => {
+    try {
+      await dispatch(deleteComment(comment._id)).unwrap();
+      setShowDeleteConfirm(false);
+    } catch (error) {
+      console.error('Failed to delete comment:', error);
+    }
+  };
+
   const formatDate = (date) => {
     const now = new Date();
     const commentDate = new Date(date);
@@ -70,14 +110,6 @@ const Comment = ({ comment, postId, isReply = false }) => {
   const isAuthor = user && comment.author._id === user._id;
   const isModerator = user && (user.role === 'admin' || user.role === 'moderator');
   const voteScore = comment.voteScore || 0;
-
-  console.log('💬 Comment voteScore:', {
-    commentId: comment._id,
-    voteScore,
-    userVote: comment.userVote,
-    upvotes: comment.votes?.upvotes?.length,
-    downvotes: comment.votes?.downvotes?.length
-  });
 
   return (
     <div className={`comment ${isReply ? 'comment-reply' : ''}`}>
@@ -103,7 +135,39 @@ const Comment = ({ comment, postId, isReply = false }) => {
         </div>
 
         <div className='comment-content'>
-          {comment.content}
+          {isEditing ? (
+            <form className='edit-comment-form' onSubmit={handleEditSubmit}>
+              <textarea
+                className='edit-textarea'
+                value={editText}
+                onChange={(e) => setEditText(e.target.value)}
+                rows={4}
+                maxLength={5000}
+                autoFocus
+              />
+              <div className='edit-form-footer'>
+                <span className='char-count'>{editText.length} / 5000</span>
+                <div className='edit-buttons'>
+                  <button
+                    type='button'
+                    className='cancel-edit-btn'
+                    onClick={handleCancelEdit}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type='submit'
+                    className='save-edit-btn'
+                    disabled={!editText.trim() || isSubmitting}
+                  >
+                    {isSubmitting ? 'Saving...' : 'Save'}
+                  </button>
+                </div>
+              </div>
+            </form>
+          ) : (
+            <>{comment.content}</>
+          )}
         </div>
 
         <div className='comment-actions'>
@@ -116,13 +180,16 @@ const Comment = ({ comment, postId, isReply = false }) => {
             </button>
           )}
           
-          {isAuthor && (
-            <button className='comment-action-btn'>
+          {isAuthor && !isEditing && (
+            <button 
+              className='comment-action-btn'
+              onClick={() => setIsEditing(true)}
+            >
               ✏️ Edit
             </button>
           )}
           
-          {(isAuthor || isModerator) && (
+          {(isAuthor || isModerator) && !isEditing && (
             <button 
               className='comment-action-btn delete'
               onClick={() => setShowDeleteConfirm(true)}
@@ -194,7 +261,7 @@ const Comment = ({ comment, postId, isReply = false }) => {
               <button className='cancel-btn' onClick={() => setShowDeleteConfirm(false)}>
                 Cancel
               </button>
-              <button className='confirm-delete-btn'>
+              <button className='confirm-delete-btn' onClick={handleDelete}>
                 Delete
               </button>
             </div>

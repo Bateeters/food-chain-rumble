@@ -91,13 +91,13 @@ const forumService = {
         return response.data;
     },
 
-    // Update comment
-    updateComment: async (commentId, content) => {
-        const response = await api.patch(`/forum/comments/${commentId}`, { content });
+    // Update a comment
+    updateComment: async (commentId, commentData) => {
+        const response = await api.patch(`/forum/comments/${commentId}`, commentData);
         return response.data;
     },
 
-    // Delete comment
+    // Delete a comment
     deleteComment: async (commentId) => {
         const response = await api.delete(`/forum/comments/${commentId}`);
         return response.data;

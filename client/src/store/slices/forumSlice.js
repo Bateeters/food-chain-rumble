@@ -104,6 +104,30 @@ export const createComment = createAsyncThunk(
     }
 );
 
+export const updateComment = createAsyncThunk(
+    'forum/updateComment',
+    async ({ commentId, commentData }, { rejectWithValue }) => {
+        try {
+            const data = await forumService.updateComment(commentId, commentData);
+            return { commentId, ...data };
+        } catch (error) {
+            return rejectWithValue(error.response?.data?.error || 'Failed to update comment');
+        }
+    }
+);
+
+export const deleteComment = createAsyncThunk(
+    'forum/deleteComment',
+    async (commentId, { rejectWithValue }) => {
+        try {
+            await forumService.deleteComment(commentId);
+            return commentId;
+        } catch (error) {
+            return rejectWithValue(error.response?.data?.error || 'Failed to delete comment');
+        }
+    }
+);
+
 export const voteOnComment = createAsyncThunk(
     'forum/voteOnComment',
     async ({ commentId, voteType }, { rejectWithValue }) => {
@@ -311,6 +335,55 @@ const forumSlice = createSlice({
             state.createCommentSuccess = false;
         })
         
+        // Update comment
+        .addCase(updateComment.fulfilled, (state, action) => {
+            const { commentId, comment: updatedComment } = action.payload;
+            
+            // Update in top-level comments
+            const commentIndex = state.comments.findIndex(c => c._id === commentId);
+            if (commentIndex !== -1) {
+                state.comments[commentIndex] = {
+                    ...state.comments[commentIndex],
+                    ...updatedComment,
+                    editedAt: new Date().toISOString()
+                };
+            }
+            
+            // Update in nested replies
+            state.comments.forEach(c => {
+                if (c.replies) {
+                    const replyIndex = c.replies.findIndex(r => r._id === commentId);
+                    if (replyIndex !== -1) {
+                        c.replies[replyIndex] = {
+                            ...c.replies[replyIndex],
+                            ...updatedComment,
+                            editedAt: new Date().toISOString()
+                        };
+                    }
+                }
+            });
+        })
+
+        // Delete comment
+        .addCase(deleteComment.fulfilled, (state, action) => {
+            const commentId = action.payload;
+            
+            // Remove from top-level comments
+            state.comments = state.comments.filter(c => c._id !== commentId);
+            
+            // Remove from nested replies
+            state.comments.forEach(c => {
+                if (c.replies) {
+                    c.replies = c.replies.filter(r => r._id !== commentId);
+                }
+            });
+            
+            // Decrement comment count on current post
+            if (state.currentPost) {
+                state.currentPost.stats.commentCount = Math.max(0, state.currentPost.stats.commentCount - 1);
+            }
+        })
+
         // Vote on comment
         .addCase(voteOnComment.fulfilled, (state, action) => {
             console.log('🟢 voteOnComment.fulfilled payload:', action.payload);

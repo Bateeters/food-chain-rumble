@@ -286,10 +286,6 @@ const getPostsInBoard = async (req, res) => {
 // @access  Public
 const getPostById = async (req, res) => {
     try {
-        console.log('🔍 req.user:', req.user); // ← ADD THIS
-        console.log('🔍 req.user?.id:', req.user?.id); // ← ADD THIS
-        console.log('🔍 req.user?._id:', req.user?._id); // ← ADD THIS
-        
         const post = await ForumPost.findById(req.params.id)
             .populate('author', 'username avatar')
             .populate('board', 'name slug');
@@ -312,31 +308,17 @@ const getPostById = async (req, res) => {
         // Check user's vote
         const userId = req.user?.id || req.user?._id;
         postObject.userVote = null;
-        
-        console.log('👤 Checking votes for userId:', userId); // ← ADD THIS
-        
-        if (userId) {
-            console.log('📊 Post votes:', {
-                upvotes: post.votes.upvotes,
-                downvotes: post.votes.downvotes
-            }); // ← ADD THIS
-            
+                
+        if (userId) {            
             const hasUpvoted = post.votes?.upvotes?.some(id => {
                 const match = id.toString() === userId.toString();
-                console.log(`Comparing ${id.toString()} === ${userId.toString()}: ${match}`); // ← ADD THIS
                 return match;
             });
             const hasDownvoted = post.votes?.downvotes?.some(id => id.toString() === userId.toString());
-            
-            console.log('✅ Vote check:', { hasUpvoted, hasDownvoted }); // ← ADD THIS
-            
+                        
             if (hasUpvoted) postObject.userVote = 'upvote';
             else if (hasDownvoted) postObject.userVote = 'downvote';
-        } else {
-            console.log('❌ No userId - user not authenticated'); // ← ADD THIS
         }
-
-        console.log('📝 Final userVote:', postObject.userVote); // ← ADD THIS
 
         res.json({ post: postObject });
 
@@ -751,6 +733,12 @@ const updateComment = async (req, res) => {
     try {
         const { content } = req.body;
 
+        if (!content || !content.trim()) {
+            return res.status(400).json({
+                error: 'Comment content is required'
+            });
+        }
+
         const comment = await Comment.findById(req.params.id);
 
         if (!comment) {
@@ -758,29 +746,25 @@ const updateComment = async (req, res) => {
                 error: 'Comment not found'
             });
         }
-        
-        // Check authorization
-        const isAuthor = comment.author.toString() === req.user.id;
 
-        /* Check authorization (admin/mod)
-        const isAdminOrMod = req.user.role === 'admin' || req.user.role === 'moderator';
-        */
-
-        if (!isAuthor /*&& !isAdminOrMod*/) {
+        // Check if user is the author
+        if (comment.author.toString() !== req.user.id && comment.author.toString() !== req.user._id.toString()) {
             return res.status(403).json({
-                error: 'Not authorized to edit this comment'
+                error: 'Not authorized to update this comment'
             });
         }
 
-        comment.content = content;
-        comment.isEdited = true;
+        comment.content = content.trim();
+        comment.editedAt = Date.now();
+
         await comment.save();
 
-        await comment.populate('author', 'username avatar');
+        const populatedComment = await Comment.findById(comment._id)
+            .populate('author', 'username avatar');
 
         res.json({
             message: 'Comment updated successfully',
-            comment
+            comment: populatedComment
         });
 
     } catch (error) {
@@ -805,29 +789,27 @@ const deleteComment = async (req, res) => {
             });
         }
 
-        // Check authorization
-        const isAuthor = comment.author.toString() === req.user.id;
-        const isAdminOrMod = req.user.role === 'admin' || req.user.role === 'moderator';
+        // Check if user is the author or moderator/admin
+        const isAuthor = comment.author.toString() === req.user.id || comment.author.toString() === req.user._id.toString();
+        const isModerator = req.user.role === 'admin' || req.user.role === 'moderator';
 
-        if (!isAuthor && !isAdminOrMod) {
+        if (!isAuthor && !isModerator) {
             return res.status(403).json({
                 error: 'Not authorized to delete this comment'
             });
         }
 
-        // Delete all replies to this comment
-        await Comment.deleteMany({ parentComment: comment._id });
+        // Soft delete - mark as deleted instead of removing
+        comment.isDeleted = true;
+        comment.content = '[deleted]';
+        await comment.save();
 
         // Update post comment count
         const post = await ForumPost.findById(comment.post);
         if (post) {
-            // Count how many comments are being deleted (this comment + all replies)
-            const replyCount = await Comment.countDocuments({ parentComment: comment._id });
-            post.commentCount = Math.max(0, post.commentCount - (1 + replyCount));
+            post.stats.commentCount = Math.max(0, post.stats.commentCount - 1);
             await post.save();
         }
-
-        await comment.deletedOne();
 
         res.json({
             message: 'Comment deleted successfully'
