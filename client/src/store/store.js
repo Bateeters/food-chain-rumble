@@ -3,13 +3,15 @@ import authReducer from './slices/authSlice';
 import characterReducer from './slices/characterSlice';
 import leaderboardReducer from './slices/leaderboardSlice';
 import userStatsReducer from './slices/userStatsSlice';
+import forumReducer from './slices/forumSlice';
 
 export const store = configureStore({
   reducer: {
     auth: authReducer,
     characters: characterReducer,
     leaderboard: leaderboardReducer,
-    userStats: userStatsReducer
+    userStats: userStatsReducer,
+    forum: forumReducer,
   }
 });
 
