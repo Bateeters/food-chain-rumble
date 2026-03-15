@@ -28,6 +28,7 @@ const Header = () => {
           <Link to="/" className="nav-link">Home</Link>
           <Link to="/characters" className="nav-link">Characters</Link>
           <Link to="/leaderboard" className="nav-link">Leaderboard</Link>
+          <Link to="/forum" className="nav-link">Forum</Link>
           
           {isAuthenticated ? (
             <>
