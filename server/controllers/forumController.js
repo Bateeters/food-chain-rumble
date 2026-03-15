@@ -10,18 +10,45 @@ const mongoose = require('mongoose');
 const getAllBoards = async (req, res) => {
     try {
         const boards = await ForumBoard.find()
-            .sort({ order: 1 });
+            .sort({ displayOrder: 1 });
+
+        // Get real-time post count for each board
+        const boardsWithCounts = await Promise.all(
+            boards.map(async (board) => {
+                const postCount = await ForumPost.countDocuments({
+                    board: board._id,
+                    isDeleted: false
+                });
+
+                const recentPost = await ForumPost.findOne({
+                    board: board._id,
+                    isDeleted: false
+                })
+                    .sort({ createdAt: -1 })
+                    .populate('author', 'username avatar')
+                    .lean();
+
+                return {
+                    _id: board._id,
+                    name: board.name,
+                    description: board.description,
+                    slug: board.slug,
+                    icon: board.icon,
+                    color: board.color,
+                    displayOrder: board.displayOrder,
+                    postCount: postCount,
+                    recentPost: recentPost ? {
+                        _id: recentPost._id,
+                        title: recentPost.title,
+                        author: recentPost.author,
+                        createdAt: recentPost.createdAt
+                    } : null
+                };
+            })
+        );
 
         res.json({
-            boards: boards.map(board => ({
-                _id: board._id,
-                name: board.name,
-                description: board.description,
-                slug: board.slug,
-                order: board.order,
-                postCount: board.postCount,
-                latestPost: board.latestPost
-            }))
+            boards: boardsWithCounts
         });
 
     } catch (error) {
