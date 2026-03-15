@@ -23,6 +23,8 @@ const MatchDetailModal = ({ match, onClose }) => {
 
     const team1Players = match.players.filter(p => p.team === 1);
     const team2Players = match.players.filter(p => p.team === 2);
+
+    const didUserWin = match.result === 'win';
     const isTeam1Winner = match.winningTeam === 1;
 
     return (
@@ -36,9 +38,9 @@ const MatchDetailModal = ({ match, onClose }) => {
                 {/* Match Header */}
                 <div className={`match-header ${isTeam1Winner ? 'team1-won' : 'team2-won'}`}>
                     <div className='match-result'>
-                        <span className='result-icon'>{isTeam1Winner ? '✓' : '✗'}</span>
+                        <span className='result-icon'>{didUserWin ? '✓' : '✗'}</span>
                         <span className='result-text'>
-                            {isTeam1Winner ? 'VICTORY' : 'DEFEAT'}
+                            {didUserWin ? 'VICTORY' : 'DEFEAT'}
                         </span>
                     </div>
                     <div className='match-mode'>{match.gameMode.replace('_', ' ').toUpperCase()}</div>
@@ -74,7 +76,8 @@ const MatchDetailModal = ({ match, onClose }) => {
                                 <div className='col-player'>Player</div>
                                 <div className='col-character'>Character</div>
                                 <div className='col-kda'>K/D/A</div>
-                                <div className='col-damage'>Damage</div>
+                                <div className='col-damage'>Damage Dealt</div>
+                                <div className='col-damage'>Damage Taken</div>
                             </div>
                             {team1Players.map((player, idx) => (
                                 <div key={idx} className='player-row'>
@@ -82,7 +85,9 @@ const MatchDetailModal = ({ match, onClose }) => {
                                         <span className='player-name'>{player.user?.username || 'Unknown'}</span>
                                     </div>
                                     <div className='col-character'>
-                                        <CharacterIcon character={player.character} size='small' />
+                                        <div className='match-detail-char-icon'>
+                                            <CharacterIcon character={player.character} />
+                                        </div>
                                         <span className='character-name'>{player.character?.name || 'Unknown'}</span>
                                     </div>
                                     <div className='col-kda'>
@@ -92,6 +97,9 @@ const MatchDetailModal = ({ match, onClose }) => {
                                     </div>
                                     <div className='col-damage'>
                                         <span className='damage-dealt'>{player.stats.damageDealt.toLocaleString()}</span>
+                                    </div>
+                                    <div className='col-damage'>
+                                        <span className='damage-taken'>{player.stats.damageTaken.toLocaleString()}</span>
                                     </div>
                                 </div>
                             ))}
@@ -112,7 +120,8 @@ const MatchDetailModal = ({ match, onClose }) => {
                                 <div className='col-player'>Player</div>
                                 <div className='col-character'>Character</div>
                                 <div className='col-kda'>K/D/A</div>
-                                <div className='col-damage'>Damage</div>
+                                <div className='col-damage'>Damage Dealt</div>
+                                <div className='col-damage'>Damage Taken</div>
                             </div>
                             {team2Players.map((player, idx) => (
                                 <div key={idx} className='player-row'>
@@ -120,7 +129,9 @@ const MatchDetailModal = ({ match, onClose }) => {
                                         <span className='player-name'>{player.user?.username || 'Unknown'}</span>
                                     </div>
                                     <div className='col-character'>
-                                        <CharacterIcon character={player.character} size='small' />
+                                        <div className='match-detail-char-icon'>
+                                            <CharacterIcon character={player.character} />
+                                        </div>
                                         <span className='character-name'>{player.character?.name || 'Unknown'}</span>
                                     </div>
                                     <div className='col-kda'>
@@ -130,6 +141,9 @@ const MatchDetailModal = ({ match, onClose }) => {
                                     </div>
                                     <div className='col-damage'>
                                         <span className='damage-dealt'>{player.stats.damageDealt.toLocaleString()}</span>
+                                    </div>
+                                    <div className='col-damage'>
+                                        <span className='damage-taken'>{player.stats.damageTaken.toLocaleString()}</span>
                                     </div>
                                 </div>
                             ))}
