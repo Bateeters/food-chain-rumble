@@ -31,13 +31,16 @@ const ForumBoard = () => {
   }, [dispatch, slug]);
 
   useEffect(() => {
-    if (currentBoard) {
+    if (currentBoard && currentBoard.slug === slug) {
+      console.log('CurrentBoard:', currentBoard);
+      console.log('CurrentBoard Color:', currentBoard.color);
+
       dispatch(fetchPostsInBoard({
         boardId: currentBoard._id,
         params: { sort: sortBy, page: 1, limit: 20 }
       }));
     }
-  }, [dispatch, currentBoard, sortBy]);
+  }, [dispatch, currentBoard, sortBy, slug]);
 
   const handlePostClick = (postId) => {
     navigate(`/forum/posts/${postId}`);

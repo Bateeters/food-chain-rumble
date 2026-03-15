@@ -83,7 +83,8 @@ const getBoardBySlug = async (req, res) => {
                 slug: board.slug,
                 order: board.order,
                 postCount: board.postCount,
-                latestPost: board.latestPost
+                latestPost: board.latestPost,
+                color: board.color,
             }
         });
 
@@ -206,41 +207,56 @@ const getPostsInBoard = async (req, res) => {
         const { boardId } = req.params;
         const { page = 1, limit = 20, sort = 'latest' } = req.query;
 
-        // Build sort criteria
-        let sortCriteria;
+        const posts = await ForumPost.find({ board: boardId, isDeleted: false })
+            .populate('author', 'username avatar')
+            .populate('board', 'name slug')
+            .lean();
+        
+        // Calculate vote scores
+        const postsWithScores = posts.map(post => ({
+            ...post,
+            voteScore: (post.votes?.upvotes?.length || 0) - (post.votes?.downvotes?.length || 0)
+        }));
+
+        // Sort in memory
+        let sortedPosts;
         switch (sort) {
             case 'popular':
-                sortCriteria = { upvotes: -1, createdAt: -1 };
+                sortedPosts = postsWithScores.sort((a, b) => {
+                    if (a.isPinned !== b.isPinned) return b.isPinned ? 1 : -1;
+                    return b.voteScore - a.voteScore;
+                });
                 break;
             case 'oldest':
-                sortCriteria = { createdAt: 1 };
+                sortedPosts = postsWithScores.sort((a, b) => {
+                    if (a.isPinned !== b.isPinned) return b.isPinned ? 1 : -1;
+                    return new Date(a.createdAt) - new Date(b.createdAt);
+                });
                 break;
             case 'latest':
             default:
-                sortCriteria = { isPinned: -1, updatedAt: -1 };
+                sortedPosts = postsWithScores.sort((a, b) => {
+                    if (a.isPinned !== b.isPinned) return b.isPinned ? 1 : -1;
+                    return new Date(b.stats?.lastActivityDate || b.createdAt) - new Date(a.stats?.lastActivityDate || a.createdAt);
+                });
         }
 
-        const posts = await ForumPost.find({ board: boardId })
-            .populate('author', 'username avatar')
-            .populate('board', 'name slug')
-            .sort(sortCriteria)
-            .limit(limit * 1)
-            .skip((page - 1) * limit);
-        
-        const total = await ForumPost.countDocuments({ board: boardId });
+        // Paginate
+        const startIndex = (page - 1) * limit;
+        const paginatedPosts = sortedPosts.slice(startIndex, startIndex + limit);
 
         res.json({
-            posts,
+            posts: paginatedPosts,
             pagination: {
                 page: Number(page),
                 limit: Number(limit),
-                total,
-                pages: Math.ceil(total / limit)
+                total: posts.length,
+                pages: Math.ceil(posts.length / limit)
             }
         });
 
     } catch (error) {
-        console.error('Get posts in board error:', error)
+        console.error('Get posts in board error:', error);
         res.status(500).json({
             error: 'Error fetching posts in board',
             details: error.message
