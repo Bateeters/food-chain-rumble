@@ -4,6 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { fetchBoardBySlug, fetchPostsInBoard } from '../store/slices/forumSlice';
 import UserAvatar from '../components/user/UserAvatar';
 import './ForumBoard.css';
+import CreatePostModal from '../components/forum/CreatePostModal';
 
 const ForumBoard = () => {
   const dispatch = useDispatch();
@@ -214,10 +215,10 @@ const ForumBoard = () => {
 
       {/* Create Post Modal */}
       {showCreateModal && (
-        <div className='modal-placeholder'>
-          Create Post Modal (Coming next!)
-          <button onClick={() => setShowCreateModal(false)}>Close</button>
-        </div>
+        <CreatePostModal
+          boardId={currentBoard._id}
+          onClose={() => setShowCreateModal(false)}
+        />
       )}
     </div>
   );
