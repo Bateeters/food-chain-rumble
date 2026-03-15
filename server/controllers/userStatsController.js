@@ -254,10 +254,10 @@ const getRecentMatches = async (req, res) => {
             .sort({ endedAt: -1 })
             .limit(parseInt(limit))
             .populate('players.user', 'username avatar')
-            .populate('players.character', 'name image')
+            .populate('players.character', 'name image primaryColor secondaryColor textColor')
             .lean();
 
-        // Format matches
+        // Format matches - but keep ALL players, not just current user
         const formattedMatches = matches.map(match => {
             // Find this user's data in the match
             const userPlayer = match.players.find(
@@ -277,7 +277,10 @@ const getRecentMatches = async (req, res) => {
                 winningTeam: match.winningTeam,
                 duration: match.duration,
                 endedAt: match.endedAt,
-                team: userPlayer.team
+                team: userPlayer.team,
+                arena: match.arena,
+                serverRegion: match.serverRegion,
+                players: match.players
             };
         });
 
