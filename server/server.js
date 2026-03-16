@@ -3,9 +3,15 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 require('dotenv').config();
 
 const app = express();
+
+// Body Parser Middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
 // Security Middleware
 app.use(helmet({
@@ -17,11 +23,10 @@ app.use(helmet({
 const allowedOrigins = [
   'http://localhost:3000',
   process.env.CLIENT_URL
-].filter(Boolean); // Remove undefined values
+].filter(Boolean);
 
 const corsOptions = {
   origin: function (origin, callback) {
-    // Allow requests with no origin (mobile apps, Postman, etc.)
     if (!origin) return callback(null, true);
     
     if (allowedOrigins.indexOf(origin) !== -1) {
@@ -35,41 +40,28 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
-const rateLimit = require('express-rate-limit');
-
-// Rate limiting
+// General Rate Limiting - 100 requests per 15 minutes
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per windowMs
-  message: 'Too many requests from this IP, please try again later.'
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  message: 'Too many requests from this IP, please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
 });
 
-// Apply to all routes
 app.use('/api/', limiter);
 
-// Stricter limit for auth routes
+// Stricter limit for auth routes - 5 attempts per 15 minutes
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 5, // 5 attempts per 15 minutes
-  message: 'Too many login attempts, please try again later.'
+  max: 5,
+  message: 'Too many login attempts, please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
 });
 
 app.use('/api/auth/login', authLimiter);
 app.use('/api/auth/register', authLimiter);
-
-const mongoSanitize = require('express-mongo-sanitize');
-
-// Data sanitization against NoSQL injection
-app.use(mongoSanitize());
-
-// Middleware
-app.use(cors({
-    origin: 'http://localhost:3000', // React app will run on port 3000
-    credentials: true
-}));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
 
 // Database Connection
 mongoose.connect(process.env.MONGO_URI)
@@ -79,6 +71,11 @@ mongoose.connect(process.env.MONGO_URI)
 // Routes
 const routes = require('./routes/index');
 app.use('/api', routes);
+
+// Health Check
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
 
 // 404 Handler
 app.use((req, res) => {
@@ -100,5 +97,6 @@ app.use((err, req, res, next) => {
 // Start Server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`)
+    console.log(`Server running on port ${PORT}`);
+    console.log(`Security: Helmet and Rate Limiting enabled`);
 });
