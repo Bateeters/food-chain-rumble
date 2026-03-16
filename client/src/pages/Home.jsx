@@ -14,6 +14,7 @@ const Home = () => {
                     <p className="hero-subtitle">
                         Battle your way to the top of the food chain in this competitive platform brawler!
                     </p>
+                    {/*
                     <div className="hero-buttons">
                         {isAuthenticated ? (
                             <Link>Go to Dashboard</Link>
@@ -24,6 +25,7 @@ const Home = () => {
                             </>
                         )}
                     </div>
+                    */}
                 </div>
             </section>
 
