@@ -31,6 +31,12 @@ const userSchema = new mongoose.Schema({
     pendingEmail: {
         type: String
     },
+    passwordResetToken: {
+        type: String
+    },
+    passwordResetExpires: {
+        type: Date
+    },
     emailChangeToken: {
         type: String
     },

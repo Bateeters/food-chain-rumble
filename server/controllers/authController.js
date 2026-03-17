@@ -2,12 +2,16 @@ const crypto = require('crypto');
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const sendEmail = require('../utils/sendEmail');
-const { getVerificationEmailTemplate, getWelcomeEmailTemplate } = require('../utils/emailTemplates');
+const { 
+    getVerificationEmailTemplate, 
+    getWelcomeEmailTemplate,
+    getPasswordResetEmailTemplate 
+} = require('../utils/emailTemplates');
 
 // Generate JWT Token
 const generateToken = (id) => {
     return jwt.sign({ id }, process.env.JWT_SECRET, {
-        expiresIn: '7d' // Token expires in 7 days
+        expiresIn: '7d'
     });
 };
 
@@ -33,31 +37,67 @@ const register = async (req, res) => {
         if (userExists) {
             return res.status(400).json({
                 error: userExists.email === email
-                ? 'Email already registered'
-                : 'Username already taken'
+                    ? 'Email already registered'
+                    : 'Username already taken'
             });
         }
 
-        // Generate email verification token
+        // Generate email verification token (plain)
         const verificationToken = crypto.randomBytes(32).toString('hex');
+        
+        // Hash token for database storage (security!)
+        const hashedToken = crypto
+            .createHash('sha256')
+            .update(verificationToken)
+            .digest('hex');
 
-        // Create User (password will be hashed by User model pre-save hook)
+        // Create User
         const user = await User.create({
             username,
             email,
             password,
-            emailVerificationToken: verificationToken,
-            emailVerificationExpires: Date.now() + 24 * 60 * 60 * 1000 // 24 hours
+            isEmailVerified: false,
+            emailVerificationToken: hashedToken,  // ← Store hashed version
+            emailVerificationExpires: Date.now() + parseInt(process.env.VERIFICATION_TOKEN_EXPIRE)
         });
+
+        // Create verification URL (use plain token in URL)
+        const verificationUrl = `${process.env.CLIENT_URL}/verify-email/${verificationToken}`;
 
         // Send verification email
-        const verificationUrl = `${process.env.CLIENT_URL}/verify-email/${verificationToken}`;
-        const template = getVerificationEmailTemplate(username, verificationUrl);
-        await sendEmail({ email, subject: template.subject, html: template.html, text: template.text });
+        try {
+            const emailHtml = getVerificationEmailTemplate(user.username, verificationUrl);
 
-        res.status(201).json({
-            message: 'Registration successful! Please check your email to verify your account.'
-        });
+            await sendEmail({
+                email: user.email,
+                subject: 'Verify Your Food Chain Rumble Account',
+                html: emailHtml
+            });
+
+            res.status(201).json({
+                message: 'Registration successful! Please check your email to verify your account.',
+                user: {
+                    id: user._id,
+                    username: user.username,
+                    email: user.email,
+                    isEmailVerified: user.isEmailVerified
+                }
+            });
+
+        } catch (emailError) {
+            console.error('❌ Email sending failed:', emailError);
+            
+            res.status(201).json({
+                message: 'Account created but verification email failed to send. Please use "Resend Verification Email".',
+                user: {
+                    id: user._id,
+                    username: user.username,
+                    email: user.email,
+                    isEmailVerified: user.isEmailVerified
+                }
+            });
+        }
+
     } catch (error) {
         console.error('Registration error:', error);
         res.status(500).json({
@@ -72,17 +112,18 @@ const register = async (req, res) => {
 // @access  Public
 const login = async (req, res) => {
     try {
-        const { email, password } = req.body;
+        const { username, email, password } = req.body;
 
-        // Validation
-        if (!email || !password) {
+        // Support login with either username OR email
+        if ((!username && !email) || !password) {
             return res.status(400).json({
-                error: 'Please provide email and password'
+                error: 'Please provide username/email and password'
             });
         }
 
-        // Find user and explicitly include password (it's excluded by default in toJSON)
-        const user = await User.findOne({ email }).select('+password');
+        // Find user by username OR email
+        const query = username ? { username } : { email };
+        const user = await User.findOne(query).select('+password');
 
         if (!user) {
             return res.status(401).json({
@@ -90,7 +131,7 @@ const login = async (req, res) => {
             });
         }
 
-        // Check password using User model method
+        // Check password
         const isPasswordCorrect = await user.comparePassword(password);
 
         if (!isPasswordCorrect) {
@@ -101,22 +142,21 @@ const login = async (req, res) => {
 
         // Check if email is verified
         if (!user.isEmailVerified) {
-            return res.status(401).json({
-                error: 'Email not verified. Please check your inbox for verification email.'
+            return res.status(403).json({
+                error: 'Please verify your email before logging in',
+                needsVerification: true,
+                email: user.email
             });
         }
-        
+
         // Check if user is banned
         if (user.isBanned) {
-            // Check if ban has expired
             if (user.banExpiresAt && new Date() > user.banExpiresAt) {
-                // Ban expired - auto-unban
                 user.isBanned = false;
                 user.banReason = null;
                 user.banExpiresAt = null;
                 await user.save();
             } else {
-                // Ban still active
                 return res.status(403).json({
                     error: 'Account is banned',
                     reason: user.banReason,
@@ -137,7 +177,7 @@ const login = async (req, res) => {
         // Generate token
         const token = generateToken(user._id);
 
-        // Remove password before sending (even though toJSON does this, be explicit)
+        // Remove password before sending
         const userResponse = user.toObject();
         delete userResponse.password;
 
@@ -157,13 +197,10 @@ const login = async (req, res) => {
 };
 
 // @route   POST /api/auth/logout
-// @desc    Logout user (client-side token removal, server just confirms)
+// @desc    Logout user
 // @access  Private
 const logout = async (req, res) => {
     try {
-        // In a JWT-based system, logout is primarily handled client-side
-        // by removing the token. Server just acknowledges the request.
-
         res.json({
             message: 'Logged out successfully'
         });
@@ -181,7 +218,6 @@ const logout = async (req, res) => {
 // @access  Private
 const getCurrentUser = async (req, res) => {
     try {
-        // req.user is set by protect middleware
         const user = await User.findById(req.user.id);
 
         if (!user) {
@@ -202,7 +238,7 @@ const getCurrentUser = async (req, res) => {
 
 // @route   POST /api/auth/refresh
 // @desc    Refresh access token
-// @access  Public (but requires valid token)
+// @access  Public
 const refreshToken = async (req, res) => {
     try {
         const { token } = req.body;
@@ -213,10 +249,7 @@ const refreshToken = async (req, res) => {
             });
         }
 
-        // Verify the token
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-        // Get user
         const user = await User.findById(decoded.id);
 
         if (!user) {
@@ -225,7 +258,6 @@ const refreshToken = async (req, res) => {
             });
         }
 
-        // Check if banned or inactive
         if (user.isBanned) {
             return res.status(403).json({
                 error: 'Account is banned'
@@ -238,7 +270,6 @@ const refreshToken = async (req, res) => {
             });
         }
 
-        // Generate new token
         const newToken = generateToken(user._id);
 
         res.json({
@@ -268,8 +299,15 @@ const verifyEmail = async (req, res) => {
     try {
         const { token } = req.params;
 
+        // Hash the token from URL to compare with database
+        const hashedToken = crypto
+            .createHash('sha256')
+            .update(token)
+            .digest('hex');
+
+        // Find user with matching hashed token
         const user = await User.findOne({
-            emailVerificationToken: token,
+            emailVerificationToken: hashedToken,
             emailVerificationExpires: { $gt: Date.now() }
         });
 
@@ -279,20 +317,34 @@ const verifyEmail = async (req, res) => {
             });
         }
 
+        // Verify user
         user.isEmailVerified = true;
         user.emailVerificationToken = undefined;
         user.emailVerificationExpires = undefined;
         await user.save();
 
         // Send welcome email (non-blocking)
-        const template = getWelcomeEmailTemplate(user.username);
-        sendEmail({ email: user.email, subject: template.subject, html: template.html, text: template.text })
-            .catch(err => console.error('Welcome email failed:', err));
+        try {
+            const welcomeHtml = getWelcomeEmailTemplate(user.username);
+            sendEmail({
+                email: user.email,
+                subject: 'Welcome to Food Chain Rumble!',
+                html: welcomeHtml
+            }).catch(err => console.error('Welcome email failed:', err));
+        } catch (emailError) {
+            console.log('Welcome email failed but verification succeeded');
+        }
 
-        res.json({ message: 'Email verified successfully! You can now log in.' });
+        res.json({ 
+            message: 'Email verified successfully! You can now log in.' 
+        });
+
     } catch (error) {
         console.error('Email verification error:', error);
-        res.status(500).json({ error: 'Error verifying email', details: error.message });
+        res.status(500).json({ 
+            error: 'Error verifying email', 
+            details: error.message 
+        });
     }
 };
 

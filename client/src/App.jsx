@@ -17,6 +17,7 @@ import Leaderboard from './pages/Leaderboard';
 import Forum from './pages/Forum';
 import ForumBoard from './pages/ForumBoard';
 import ForumPost from './pages/ForumPost';
+import VerifyEmail from './pages/VerifyEmail';
 
 import './App.css';
 
@@ -39,6 +40,7 @@ function App() {
           <Route path="/characters" element={<Characters />} />
           <Route path="/characters/:id" element={<CharacterDetail />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
+          <Route path="/verify-email/:token" element={<VerifyEmail />} />
           <Route path='/forum/posts/:postId' element={<ForumPost />} />
           <Route path='/forum/:slug' element={<ForumBoard />} />
           <Route path='/forum' element={<Forum />} />
