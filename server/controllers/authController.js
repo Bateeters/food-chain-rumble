@@ -1,5 +1,8 @@
+const crypto = require('crypto');
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
+const sendEmail = require('../utils/sendEmail');
+const { getVerificationEmailTemplate, getWelcomeEmailTemplate } = require('../utils/emailTemplates');
 
 // Generate JWT Token
 const generateToken = (id) => {
@@ -35,21 +38,25 @@ const register = async (req, res) => {
             });
         }
 
+        // Generate email verification token
+        const verificationToken = crypto.randomBytes(32).toString('hex');
+
         // Create User (password will be hashed by User model pre-save hook)
         const user = await User.create({
             username,
             email,
-            password
+            password,
+            emailVerificationToken: verificationToken,
+            emailVerificationExpires: Date.now() + 24 * 60 * 60 * 1000 // 24 hours
         });
 
-        // Generate token
-        const token = generateToken(user._id);
+        // Send verification email
+        const verificationUrl = `${process.env.CLIENT_URL}/verify-email/${verificationToken}`;
+        const template = getVerificationEmailTemplate(username, verificationUrl);
+        await sendEmail({ email, subject: template.subject, html: template.html, text: template.text });
 
-        // Send response (password excluded by toJSON method in User Model)
         res.status(201).json({
-            message: 'User registered successfully',
-            user,
-            token
+            message: 'Registration successful! Please check your email to verify your account.'
         });
     } catch (error) {
         console.error('Registration error:', error);
@@ -254,10 +261,46 @@ const refreshToken = async (req, res) => {
     }
 };
 
+// @route   GET /api/auth/verify-email/:token
+// @desc    Verify user email address
+// @access  Public
+const verifyEmail = async (req, res) => {
+    try {
+        const { token } = req.params;
+
+        const user = await User.findOne({
+            emailVerificationToken: token,
+            emailVerificationExpires: { $gt: Date.now() }
+        });
+
+        if (!user) {
+            return res.status(400).json({
+                error: 'Verification link is invalid or has expired.'
+            });
+        }
+
+        user.isEmailVerified = true;
+        user.emailVerificationToken = undefined;
+        user.emailVerificationExpires = undefined;
+        await user.save();
+
+        // Send welcome email (non-blocking)
+        const template = getWelcomeEmailTemplate(user.username);
+        sendEmail({ email: user.email, subject: template.subject, html: template.html, text: template.text })
+            .catch(err => console.error('Welcome email failed:', err));
+
+        res.json({ message: 'Email verified successfully! You can now log in.' });
+    } catch (error) {
+        console.error('Email verification error:', error);
+        res.status(500).json({ error: 'Error verifying email', details: error.message });
+    }
+};
+
 module.exports = {
     register,
     login,
     logout,
     getCurrentUser,
-    refreshToken
+    refreshToken,
+    verifyEmail
 };

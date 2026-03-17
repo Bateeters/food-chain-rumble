@@ -7,7 +7,8 @@ const {
     login,
     logout,
     getCurrentUser,
-    refreshToken
+    refreshToken,
+    verifyEmail
 } = require('../controllers/authController');
 
 // Import middleware
@@ -37,5 +38,10 @@ router.get('/me', protect, getCurrentUser);
 // @desc    Refresh access token
 // @access  Public (but requires refresh token)
 router.post('/refresh', refreshToken);
+
+// @route   GET /api/auth/verify-email/:token
+// @desc    Verify user email address
+// @access  Public
+router.get('/verify-email/:token', verifyEmail);
 
 module.exports = router;
