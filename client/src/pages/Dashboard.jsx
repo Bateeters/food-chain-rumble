@@ -86,34 +86,36 @@ const Dashboard = () => {
           </div>
 
           <div className='rank-card'>
-            {/* Rank Cards for Each Mode */}
-              {stats?.statsByMode && Object.entries(stats.statsByMode).map(([mode, modeStats]) => {
-                const rank = getRankFromMMR(modeStats.mmr);
-                return (
-                  <div key={mode} className='rank-stat-card' style={{ backgroundColor: `${rank.color}20`, borderColor: rank.color }}>
-                    <div className='rank-badge-large' style={{ borderColor: rank.color }}>
-                      <div className='rank-icon'>{getRankIcon(rank.tier)}</div>
-                      <div className='rank-info'>
-                        <div className='rank-tier' style={{ color: rank.color }}>
-                          {rank.tier}
-                        </div>
-                        {rank.division && (
-                          <div className='rank-division'>{rank.division}</div>
-                        )}
+            {/* Rank Cards for Each Ranked Mode */}
+            {['1v1_ranked', '2v2_ranked', '3v3_ranked'].map((mode) => {
+              const modeStats = stats?.statsByMode?.[mode];
+              const rank = getRankFromMMR(modeStats?.mmr ?? 0);
+              const hasMatches = modeStats?.matches > 0;
+              return (
+                <div key={mode} className='rank-stat-card' style={{ backgroundColor: `${rank.color}20`, borderColor: rank.color }}>
+                  <div className='rank-badge-large' style={{ borderColor: rank.color }}>
+                    <div className='rank-icon'>{getRankIcon(rank.tier)}</div>
+                    <div className='rank-info'>
+                      <div className='rank-tier' style={{ color: rank.color }}>
+                        {rank.tier}
                       </div>
+                      {rank.division && (
+                        <div className='rank-division'>{rank.division}</div>
+                      )}
                     </div>
-                    <div className='rank-mode-label'>
-                      {mode.replace('_ranked', '').toUpperCase()}
-                    </div>
-                    
-                    {modeStats.rank && (
-                      <div className='rank-position'>
-                        #{modeStats.rank}
-                      </div>
-                    )}
                   </div>
-                );
-              })}
+                  <div className='rank-mode-label'>
+                    {mode.replace('_ranked', '').toUpperCase()}
+                  </div>
+
+                  {hasMatches && modeStats.rank && (
+                    <div className='rank-position'>
+                      #{modeStats.rank}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
 
           <div className='stat-card'>
@@ -122,7 +124,7 @@ const Dashboard = () => {
               <div className='stat-label'>K/D/A</div>
               <div className='stat-value'>{stats?.kda || 0}</div>
               */}
-              <div className='stat-value'>K: {stats?.totalKills || 0} | D: {stats?.totalDeaths} | A: {stats?.totalAssists}</div>
+              <div className='stat-value'>K: {stats?.totalKills || 0} | D: {stats?.totalDeaths || 0} | A: {stats?.totalAssists || 0}</div>
               <div className='stat-label'>Total Damage Dealt</div>
               <div className='stat-value'>{stats?.totalDamageDealt || 0}</div>
               <br />
