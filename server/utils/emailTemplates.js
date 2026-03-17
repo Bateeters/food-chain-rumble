@@ -288,8 +288,6 @@ You're All Set, ${username}!
 Your email has been verified and your account is now active.
 
 Here's what you can do now:
-- Choose your champion and battle
-- Climb the leaderboards
 - Track your match history
 - Join the community forums
 - Vote on posts and share strategies
