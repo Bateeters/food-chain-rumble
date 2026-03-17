@@ -343,8 +343,21 @@ const forumSlice = createSlice({
         .addCase(createComment.fulfilled, (state, action) => {
             state.isLoading = false;
             state.createCommentSuccess = true;
-            state.comments.push(action.payload.comment);
-            
+
+            const newComment = action.payload.comment;
+
+            if (newComment.parentComment) {
+                // It's a reply — add to parent's replies array
+                const parent = state.comments.find(c => c._id === newComment.parentComment);
+                if (parent) {
+                    if (!parent.replies) parent.replies = [];
+                    parent.replies.push(newComment);
+                }
+            } else {
+                // Top-level comment
+                state.comments.push(newComment);
+            }
+
             // Increment comment count on current post
             if (state.currentPost) {
                 state.currentPost.stats.commentCount += 1;
