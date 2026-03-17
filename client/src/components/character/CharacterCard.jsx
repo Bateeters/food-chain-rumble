@@ -41,15 +41,14 @@ const CharacterCard = ({ character, onClick }) => {
             <div className='character-body-card'>
                 <h3 className='character-name'>{character.name}</h3>
                 <p className='character-description'>{character.description}</p>
-
-                <div className='character-difficulty'>
-                    <span
-                        className='difficulty-badge'
-                        style={{ backgroundColor: getDifficultyColor(character.difficulty) }}
-                    >
-                        {character.difficulty}
-                    </span>
-                </div>
+            </div>
+            <div className='character-difficulty'>
+                <span
+                    className='difficulty-badge'
+                    style={{ backgroundColor: getDifficultyColor(character.difficulty) }}
+                >
+                    Character Difficulty: {'★'.repeat(parseInt(character.difficulty))}
+                </span>
             </div>
         </div>
     );

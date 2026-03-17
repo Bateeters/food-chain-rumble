@@ -6,6 +6,8 @@
   transition: all 0.3s ease;
   border: 2px solid #2d3561;
   position: relative;
+  display: flex;
+  flex-direction: column;
 }
 
 .character-card:hover {
@@ -75,6 +77,8 @@
 .character-difficulty {
   display: flex;
   justify-content: center;
+  margin-top: auto;
+  margin-bottom: 20px;
 }
 
 .difficulty-badge {
@@ -84,6 +88,8 @@
   font-weight: 600;
   color: white;
   letter-spacing: 0.5px;
+  width: 60%;
+  margin-top: auto;
 }
 
 @media (max-width: 768px) {

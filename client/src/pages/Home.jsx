@@ -26,6 +26,7 @@ const Home = () => {
                         )}
                     </div>
                     */}
+                    <p className="hero-subtitle">Watch for us on all major platforms</p>
                 </div>
             </section>
 
