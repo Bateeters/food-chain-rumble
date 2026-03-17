@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams, useNavigate } from 'react-router-dom';
-import { fetchPostById, fetchComments, voteOnPost, clearCurrentPost } from '../store/slices/forumSlice';
+import { fetchPostById, fetchComments, voteOnPost, deletePost, clearCurrentPost } from '../store/slices/forumSlice';
 import UserAvatar from '../components/user/UserAvatar';
 import CommentSection from '../components/forum/CommentSection';
 import VoteButtons from '../components/forum/VoteButtons';
@@ -44,6 +44,13 @@ const ForumPost = () => {
       hour: '2-digit',
       minute: '2-digit'
     });
+  };
+
+  const handleDelete = async () => {
+    const result = await dispatch(deletePost(postId));
+    if (deletePost.fulfilled.match(result)) {
+      navigate(`/forum/${currentPost.board?.slug}`);
+    }
   };
 
   const isAuthor = user && currentPost && currentPost.author._id === user._id;
@@ -200,7 +207,7 @@ const ForumPost = () => {
                 <button className='cancel-btn' onClick={() => setShowDeleteConfirm(false)}>
                   Cancel
                 </button>
-                <button className='confirm-delete-btn'>
+                <button className='confirm-delete-btn' onClick={handleDelete}>
                   Delete
                 </button>
               </div>

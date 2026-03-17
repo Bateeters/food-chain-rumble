@@ -354,11 +354,19 @@ const createPost = async (req, res) => {
             });
         }
 
+        const slug = title
+            .toLowerCase()
+            .replace(/[^a-z0-9\s-]/g, '')
+            .trim()
+            .replace(/\s+/g, '-')
+            + '-' + Date.now();
+
         const post = await ForumPost.create({
             board: boardId,
             author: req.user.id,
             title,
-            content
+            content,
+            slug
         });
 
         // Update board stats

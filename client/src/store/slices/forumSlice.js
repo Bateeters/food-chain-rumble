@@ -67,6 +67,18 @@ export const createPost = createAsyncThunk(
     }
 );
 
+export const deletePost = createAsyncThunk(
+    'forum/deletePost',
+    async (postId, { rejectWithValue }) => {
+        try {
+            await forumService.deletePost(postId);
+            return postId;
+        } catch (error) {
+            return rejectWithValue(error.response?.data?.error || 'Failed to delete post');
+        }
+    }
+);
+
 export const voteOnPost = createAsyncThunk(
     'forum/voteOnPost',
     async ({ postId, voteType }, { rejectWithValue }) => {
@@ -277,6 +289,15 @@ const forumSlice = createSlice({
             state.createPostSuccess = false;
         })
         
+        // Delete post
+        .addCase(deletePost.fulfilled, (state, action) => {
+            const postId = action.payload;
+            state.posts = state.posts.filter(p => p._id !== postId);
+            if (state.currentPost?._id === postId) {
+                state.currentPost = null;
+            }
+        })
+
         // Vote on post
         .addCase(voteOnPost.fulfilled, (state, action) => {
             const { postId, upvotes, downvotes, userVote } = action.payload;
