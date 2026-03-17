@@ -17,6 +17,11 @@ const Leaderboard = () => {
   const [viewMode, setViewMode] = useState('overall'); // 'overall' or 'character'
   const [selectedGameMode, setSelectedGameMode] = useState('1v1_ranked') // Default to 1v1 ranked
   const [selectedCharacter, setSelectedCharacter] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const filteredRankings = rankings
+    .map((player, index) => ({ ...player, _rank: (pagination.currentPage - 1) * 100 + index + 1 }))
+    .filter(player => player.username.toLowerCase().includes(searchQuery.toLowerCase()));
 
   // Fetch characters for dropdown
   useEffect(() => {
@@ -120,6 +125,18 @@ const Leaderboard = () => {
             </div>
           </div>
 
+          {/* Username Search */}
+          <div className='filter-group'>
+            <label>Search:</label>
+            <input
+              type='text'
+              className='character-select'
+              placeholder='Search username...'
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+
           {/* Character filter (only show in character view mode) */}
           {viewMode === 'character' && (
             <div className='filter-group'>
@@ -146,7 +163,7 @@ const Leaderboard = () => {
             <div className='loading'>Loading leaderboard...</div>
           ): error ? (
             <div className='error'>{error}</div>
-          ) : rankings.length === 0 ? (
+          ) : filteredRankings.length === 0 ? (
             <div className='empty-state'>
               <h3>No rankings yet</h3>
               <p>Be the first to compete and claim your spot!</p>
@@ -168,10 +185,10 @@ const Leaderboard = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {rankings.map((player, index) => {
-                    const rank = (pagination.currentPage - 1) * 100 + index + 1;
+                  {filteredRankings.map((player) => {
+                    const rank = player._rank;
                     return (
-                      <tr key={player._id || index} className={rank <= 3 ? 'top-three': ''}>
+                      <tr key={player._id || rank} className={rank <= 3 ? 'top-three': ''}>
 
                         <td className='rank-col'>
                           <div
@@ -225,10 +242,10 @@ const Leaderboard = () => {
           )}
 
           {/* Pagination Info */}
-          {rankings.length > 0 && (
+          {filteredRankings.length > 0 && (
             <div className='leaderboard-footer'>
               <p>
-                Showing {rankings.length} of {pagination.totalPlayers} players
+                Showing {filteredRankings.length} of {pagination.totalPlayers} players
               </p>
             </div>
           )}
