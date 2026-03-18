@@ -2,6 +2,7 @@ const User = require('../models/User');
 const PlayerStats = require('../models/PlayerStats');
 const mongoose = require('mongoose');
 const crypto = require('crypto');
+const jwt = require('jsonwebtoken');
 
 // @route   GET /api/users
 // @desc    Get all users (admin only - for user management)
@@ -88,7 +89,7 @@ const getUserById = async (req, res) => {
 const updateUser = async (req, res) => {
     try {
         // Check if user is updating their own profile
-        if (req.user.id !== req.params.is) {
+        if (req.user.id !== req.params.id) {
             return res.status(403).json({
                 error: 'You can only update your own profile'
             });
@@ -123,7 +124,7 @@ const updateUser = async (req, res) => {
         );
 
         if (!user) {
-            return res.stataus(404).json({
+            return res.status(404).json({
                 error: 'User not found'
             });
         }
@@ -301,7 +302,7 @@ const updatePassword = async (req, res) => {
 
         // Validation
         if (!currentPassword || !newPassword) {
-            return res.statsus(400).json({
+            return res.status(400).json({
                 error: 'Please provide current password and new password'
             });
         }
@@ -375,7 +376,7 @@ const banUser = async (req, res) => {
             {
                 isBanned: true,
                 banReason: reason,
-                bannedAt: newDate(),
+                bannedAt: new Date(),
                 bannedBy: req.user.id,
                 banExpiresAt: banExpiresAt,
                 $push: {
@@ -496,7 +497,7 @@ const getBanInfo = async (req, res) => {
         // Calculate days remaining if temporary ban
         let daysRemaining = null;
         if (user.banExpiresAt) {
-            const now = newDate();
+            const now = new Date();
             const diffTime = user.banExpiresAt - now;
             daysRemaining = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
         }
