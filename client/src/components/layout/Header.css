@@ -1,84 +1,116 @@
-.header {
+.site-header {
   background-color: #1a1a2e;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-  position: sticky;
-  top: 0;
-  z-index: 100;
 }
 
-.header-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 1rem 2rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.logo {
-  text-decoration: none;
+.site-header .navbar-brand {
   color: #00d4ff;
-}
-
-.logo h1 {
-  margin: 0;
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   font-weight: bold;
 }
 
-.nav {
-  display: flex;
-  align-items: center;
-  gap: 2rem;
+.site-header .navbar-brand:hover {
+  color: #00b8d4;
 }
 
-.nav-link {
-  color: #fff;
-  text-decoration: none;
-  font-size: 1rem;
-  transition: color 0.3s;
+.site-header .nav-link {
+  color: rgba(255, 255, 255, 0.85);
 }
 
-.nav-link:hover {
+.site-header .nav-link:hover,
+.site-header .nav-link.active {
   color: #00d4ff;
 }
 
-.user-menu {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
+.site-header .navbar-toggler {
+  border-color: #00d4ff;
+  position: relative;
+  z-index: 1060;
 }
 
-.username {
-  color: #00d4ff;
-  font-weight: 500;
+.site-header .navbar-toggler-icon {
+  filter: invert(1);
 }
 
-.btn-logout {
-  background-color: #e63946;
+.logout-btn {
   color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.9rem;
-  transition: background-color 0.3s;
 }
 
-.btn-logout:hover {
-  background-color: #d62828;
+.mobile-nav-btn {
+  z-index: 1 !important;
 }
 
-.btn-register {
-  background-color: #00d4ff;
-  color: #1a1a2e;
-  text-decoration: none;
-  padding: 0.5rem 1.5rem;
-  border-radius: 4px;
-  font-weight: 600;
-  transition: background-color 0.3s;
+/* Mobile close button — hidden on desktop */
+.mobile-close-btn {
+  display: none;
 }
 
-.btn-register:hover {
-  background-color: #00b8d4;
+/* Full-screen mobile menu */
+@media (max-width: 767.98px) {
+  /* Apply fixed layout to ALL collapse states so Bootstrap's height animation never runs */
+  .site-header .navbar-collapse {
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 1055;
+    height: 100vh !important;
+    overflow: visible !important;
+    background-color: #1a1a2e;
+    display: flex !important;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    /* Fade instead of Bootstrap's height slide */
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease !important;
+  }
+
+  .site-header .navbar-collapse.show {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .mobile-close-btn {
+    display: block;
+    position: absolute;
+    top: 1.25rem;
+    right: 1.25rem;
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 1.5rem;
+    cursor: pointer;
+    line-height: 1;
+  }
+
+  .mobile-close-btn:hover {
+    color: #fff;
+  }
+
+  .mobile-nav-links {
+    flex-direction: column !important;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin: 0 auto 2rem auto;
+  }
+
+  .mobile-nav-links .nav-link {
+    font-size: 1.5rem;
+    padding: 0.75rem 2rem !important;
+  }
+
+  .mobile-auth-btns {
+    flex-direction: column !important;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .mobile-auth-btns .btn,
+  .mobile-auth-btns .nav-link {
+    width: 200px;
+    text-align: center;
+    margin: 0 !important;
+  }
 }
