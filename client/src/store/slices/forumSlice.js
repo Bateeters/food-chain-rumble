@@ -67,6 +67,30 @@ export const createPost = createAsyncThunk(
     }
 );
 
+export const togglePin = createAsyncThunk(
+    'forum/togglePin',
+    async (postId, { rejectWithValue }) => {
+        try {
+            const data = await forumService.togglePinPost(postId);
+            return { postId, isPinned: data.isPinned };
+        } catch (error) {
+            return rejectWithValue(error.response?.data?.error || 'Failed to toggle pin');
+        }
+    }
+);
+
+export const toggleLock = createAsyncThunk(
+    'forum/toggleLock',
+    async (postId, { rejectWithValue }) => {
+        try {
+            const data = await forumService.toggleLockPost(postId);
+            return { postId, isLocked: data.isLocked };
+        } catch (error) {
+            return rejectWithValue(error.response?.data?.error || 'Failed to toggle lock');
+        }
+    }
+);
+
 export const deletePost = createAsyncThunk(
     'forum/deletePost',
     async (postId, { rejectWithValue }) => {
@@ -416,6 +440,26 @@ const forumSlice = createSlice({
             if (state.currentPost) {
                 state.currentPost.stats.commentCount = Math.max(0, state.currentPost.stats.commentCount - 1);
             }
+        })
+
+        // Toggle pin
+        .addCase(togglePin.fulfilled, (state, action) => {
+            const { postId, isPinned } = action.payload;
+            if (state.currentPost?._id === postId) {
+                state.currentPost.isPinned = isPinned;
+            }
+            const post = state.posts.find(p => p._id === postId);
+            if (post) post.isPinned = isPinned;
+        })
+
+        // Toggle lock
+        .addCase(toggleLock.fulfilled, (state, action) => {
+            const { postId, isLocked } = action.payload;
+            if (state.currentPost?._id === postId) {
+                state.currentPost.isLocked = isLocked;
+            }
+            const post = state.posts.find(p => p._id === postId);
+            if (post) post.isLocked = isLocked;
         })
 
         // Vote on comment

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams, useNavigate } from 'react-router-dom';
-import { fetchPostById, fetchComments, voteOnPost, deletePost, clearCurrentPost } from '../store/slices/forumSlice';
+import { fetchPostById, fetchComments, voteOnPost, deletePost, togglePin, toggleLock, clearCurrentPost } from '../store/slices/forumSlice';
 import UserAvatar from '../components/user/UserAvatar';
 import CommentSection from '../components/forum/CommentSection';
 import VoteButtons from '../components/forum/VoteButtons';
@@ -176,10 +176,16 @@ const ForumPost = () => {
                   )}
                   {isModerator && (
                     <>
-                      <button className='action-btn mod-btn'>
+                      <button
+                        className='action-btn mod-btn'
+                        onClick={() => dispatch(togglePin(postId))}
+                      >
                         {currentPost.isPinned ? '📌 Unpin' : '📌 Pin'}
                       </button>
-                      <button className='action-btn mod-btn'>
+                      <button
+                        className='action-btn mod-btn'
+                        onClick={() => dispatch(toggleLock(postId))}
+                      >
                         {currentPost.isLocked ? '🔓 Unlock' : '🔒 Lock'}
                       </button>
                     </>
