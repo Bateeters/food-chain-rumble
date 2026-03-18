@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { fetchCharacters } from '../store/slices/characterSlice';
 import CharacterCard from '../components/character/CharacterCard';
-import './Characters.css';
+import { Container, Row, Col, Spinner, Alert } from 'react-bootstrap';
 
 const Characters = () => {
   const dispatch = useDispatch();
@@ -20,52 +20,42 @@ const Characters = () => {
 
   if (isLoading) {
     return (
-      <div className='characters-page'>
-        <div className='loading'>Loading characters...</div>
+      <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '60vh' }}>
+        <Spinner animation="border" variant="primary" />
       </div>
     );
   }
 
-  if (error) {
+  if (error || !Array.isArray(characters)) {
     return (
-      <div className='characters-page'>
-        <div className='error'>Error: {error}</div>
-      </div>
+      <Container className="py-5">
+        <Alert variant="danger">{error || 'Invalid data format'}</Alert>
+      </Container>
     );
-  }
-
-  if (!Array.isArray(characters)) {
-    console.error('Characters is not an array:', characters);
-    return (
-      <div className='characters-page'>
-        <div className='error'>Error: Invalid data format</div>
-      </div>
-    )
   }
 
   return (
-    <div className='characters-page'>
-      <div className='characters-container'>
-        <div className='characters-header'>
-          <h1>Choose Your Fighter</h1>
-          <p>Select a character to deep dive into the roster.</p>
-        </div>
+    <Container className="py-5">
+      <div className="text-center mb-5">
+        <h1 className="display-5 fw-bold">Choose Your Fighter</h1>
+        <p className="text-secondary">Select a character to deep dive into the roster.</p>
+      </div>
 
-        {characters.length === 0 ? (
-          <div className='loading'>No characters found</div>
-        ) : (
-          <div className='characters-grid'>
-            {characters.map((character) => (
+      {characters.length === 0 ? (
+        <p className="text-center text-secondary">No characters found</p>
+      ) : (
+        <Row xs={1} sm={2} lg={3} xl={4} className="g-4">
+          {characters.map((character) => (
+            <Col key={character._id}>
               <CharacterCard
-                key={character._id}
                 character={character}
                 onClick={() => handleCharacterClick(character._id)}
               />
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
+            </Col>
+          ))}
+        </Row>
+      )}
+    </Container>
   );
 };
 
