@@ -1,6 +1,7 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
+import { Container, Row, Col, Spinner, Alert } from 'react-bootstrap';
 import { fetchAllBoards } from '../store/slices/forumSlice';
 import './Forum.css';
 
@@ -13,84 +14,74 @@ const Forum = () => {
     dispatch(fetchAllBoards());
   }, [dispatch]);
 
-  const handleBoardClick = (slug) => {
-    navigate(`/forum/${slug}`);
-  };
-
   if (isLoading) {
     return (
-      <div className='forum-page'>
-        <div className='forum-container'>
-          <div className='loading'>Loading forum boards...</div>
-        </div>
+      <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '60vh' }}>
+        <Spinner animation="border" variant="primary" />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className='forum-page'>
-        <div className='forum-container'>
-          <div className='error'>{error}</div>
-        </div>
-      </div>
+      <Container className="py-5">
+        <Row className="justify-content-center">
+          <Col lg={8}><Alert variant="danger">{error}</Alert></Col>
+        </Row>
+      </Container>
     );
   }
 
   return (
-    <div className='forum-page'>
-      <div className='forum-container'>
-        <div className='forum-header'>
-          <h1>Community Forum</h1>
-          <p>Discuss strategies, share builds, and connect with the community</p>
-        </div>
+    <Container className="py-5">
+      <Row className="justify-content-center">
+        <Col lg={8}>
 
-        <div className='boards-list'>
+          <div className="text-center mb-5">
+            <h1 className="fw-bold">Community Forum</h1>
+            <p className="text-secondary">Discuss strategies, share builds, and connect with the community</p>
+          </div>
+
           {boards && boards.length > 0 ? (
-            boards.map((board) => (
-              <div
-                key={board._id}
-                className='board-card'
-                onClick={() => handleBoardClick(board.slug)}
-                style={{ borderLeftColor: board.color }}
-              >
-                <div className='board-icon'>
-                  {board.icon ? (
-                    <img src={board.icon} alt={board.name} />
-                  ) : (
-                    <span className='board-icon-fallback'>💬</span>
-                  )}
-                </div>
-
-                <div className='board-info'>
-                  <h3>{board.name}</h3>
-                  <p className='board-description'>{board.description}</p>
-                  
-                  <div className='board-stats'>
-                    <span className='stat-item'>
-                      <span className='stat-icon'>📝</span>
-                      {board.postCount || 0} posts
-                    </span>
-                    {board.recentPost && (
-                      <span className='stat-item recent-post'>
-                        Last: <strong>{board.recentPost.title}</strong>
-                      </span>
-                    )}
+            <div className="d-flex flex-column gap-3">
+              {boards.map((board) => (
+                <div
+                  key={board._id}
+                  className="board-card d-flex align-items-center gap-3 p-3 rounded"
+                  style={{ borderLeft: `4px solid ${board.color || '#00d4ff'}`, cursor: 'pointer' }}
+                  onClick={() => navigate(`/forum/${board.slug}`)}
+                >
+                  <div className="board-icon fs-2">
+                    {board.icon ? <img src={board.icon} alt={board.name} width={40} /> : '💬'}
                   </div>
-                </div>
 
-                <div className='board-arrow'>→</div>
-              </div>
-            ))
+                  <div className="text-start flex-grow-1 min-width-0">
+                    <h5 className="mb-1">{board.name}</h5>
+                    <p className="text-secondary small mb-1">{board.description}</p>
+                    <div className="d-flex gap-3 text-secondary small flex-wrap">
+                      <span>📝 {board.postCount || 0} posts</span>
+                      {board.recentPost && (
+                        <span>
+                          Last: <strong>{board.recentPost.title}</strong>
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <span className="text-secondary flex-shrink-0">→</span>
+                </div>
+              ))}
+            </div>
           ) : (
-            <div className='empty-state'>
-              <h3>No forum boards yet</h3>
+            <div className="text-center text-secondary py-5">
+              <h4>No forum boards yet</h4>
               <p>Check back soon!</p>
             </div>
           )}
-        </div>
-      </div>
-    </div>
+
+        </Col>
+      </Row>
+    </Container>
   );
 };
 

@@ -1,101 +1,74 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { createPost, clearCreateSuccess } from '../../store/slices/forumSlice';
 import { useNavigate } from 'react-router-dom';
-import './CreatePostModal.css';
+import { Modal, Form, Button, Alert } from 'react-bootstrap';
+import { createPost, clearCreateSuccess } from '../../store/slices/forumSlice';
 
 const CreatePostModal = ({ boardId, onClose }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { isLoading, createPostSuccess, error } = useSelector((state) => state.forum);
+  const { isLoading, error } = useSelector((state) => state.forum);
 
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (!title.trim() || !content.trim()) {
-      return;
-    }
+    if (!title.trim() || !content.trim()) return;
 
-    const result = await dispatch(createPost({
-      boardId,
-      postData: { title: title.trim(), content: content.trim() }
-    }));
+    const result = await dispatch(createPost({ boardId, postData: { title: title.trim(), content: content.trim() } }));
 
     if (result.type === 'forum/createPost/fulfilled') {
-      // Redirect to the new post
-      const newPost = result.payload.post;
       dispatch(clearCreateSuccess());
-      navigate(`/forum/posts/${newPost._id}`);
+      navigate(`/forum/posts/${result.payload.post._id}`);
     }
   };
 
   return (
-    <div className='modal-overlay' onClick={onClose}>
-      <div className='create-post-modal' onClick={(e) => e.stopPropagation()}>
-        <div className='modal-header'>
-          <h2>Create New Post</h2>
-          <button className='modal-close' onClick={onClose}>✕</button>
-        </div>
+    <Modal show onHide={onClose} centered size="lg">
+      <Modal.Header closeButton>
+        <Modal.Title>Create New Post</Modal.Title>
+      </Modal.Header>
 
-        <form className='create-post-form' onSubmit={handleSubmit}>
-          <div className='form-group'>
-            <label htmlFor='post-title'>Title</label>
-            <input
-              id='post-title'
-              type='text'
-              className='post-title-input'
-              placeholder='Enter a descriptive title...'
+      <Form onSubmit={handleSubmit}>
+        <Modal.Body>
+          {error && <Alert variant="danger">{error}</Alert>}
+
+          <Form.Group className="mb-3">
+            <Form.Label>Title</Form.Label>
+            <Form.Control
+              type="text"
+              placeholder="Enter a descriptive title..."
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               maxLength={200}
               autoFocus
             />
-            <span className='char-count'>{title.length} / 200</span>
-          </div>
+            <Form.Text className="text-secondary">{title.length} / 200</Form.Text>
+          </Form.Group>
 
-          <div className='form-group'>
-            <label htmlFor='post-content'>Content</label>
-            <textarea
-              id='post-content'
-              className='post-content-textarea'
-              placeholder='Share your thoughts, strategies, or questions...'
+          <Form.Group>
+            <Form.Label>Content</Form.Label>
+            <Form.Control
+              as="textarea"
+              rows={12}
+              placeholder="Share your thoughts, strategies, or questions..."
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              rows={12}
               maxLength={10000}
             />
-            <span className='char-count'>{content.length} / 10,000</span>
-          </div>
+            <Form.Text className="text-secondary">{content.length} / 10,000</Form.Text>
+          </Form.Group>
+        </Modal.Body>
 
-          {error && (
-            <div className='error-message'>
-              {error}
-            </div>
-          )}
-
-          <div className='modal-footer'>
-            <button
-              type='button'
-              className='cancel-btn'
-              onClick={onClose}
-              disabled={isLoading}
-            >
-              Cancel
-            </button>
-            <button
-              type='submit'
-              className='submit-btn'
-              disabled={!title.trim() || !content.trim() || isLoading}
-            >
-              {isLoading ? 'Creating...' : 'Create Post'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+        <Modal.Footer>
+          <Button variant="danger" onClick={onClose} disabled={isLoading} className='px-3 py-1'>Cancel</Button>
+          <Button variant="primary" type="submit" disabled={!title.trim() || !content.trim() || isLoading} className='px-3 py-1'>
+            {isLoading ? 'Creating...' : 'Create Post'}
+          </Button>
+        </Modal.Footer>
+      </Form>
+    </Modal>
   );
 };
 

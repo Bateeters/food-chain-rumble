@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams, useNavigate } from 'react-router-dom';
+import { Container, Row, Col, Badge, Button, Modal, Spinner, Alert } from 'react-bootstrap';
 import { fetchPostById, fetchComments, voteOnPost, deletePost, togglePin, toggleLock, clearCurrentPost } from '../store/slices/forumSlice';
 import UserAvatar from '../components/user/UserAvatar';
 import CommentSection from '../components/forum/CommentSection';
@@ -11,7 +12,7 @@ const ForumPost = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { postId } = useParams();
-  
+
   const { currentPost, comments, isLoading, error } = useSelector((state) => state.forum);
   const { user } = useSelector((state) => state.auth);
 
@@ -22,28 +23,12 @@ const ForumPost = () => {
       dispatch(fetchPostById(postId));
       dispatch(fetchComments({ postId, params: { page: 1, limit: 50 } }));
     }
-
-    return () => {
-      dispatch(clearCurrentPost());
-    };
+    return () => { dispatch(clearCurrentPost()); };
   }, [dispatch, postId]);
 
   const handleVote = (voteType) => {
-    if (!user) {
-      navigate('/login');
-      return;
-    }
+    if (!user) { navigate('/login'); return; }
     dispatch(voteOnPost({ postId, voteType }));
-  };
-
-  const formatDate = (date) => {
-    return new Date(date).toLocaleString('en-US', {
-      month: 'long',
-      day: 'numeric',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
   };
 
   const handleDelete = async () => {
@@ -53,175 +38,141 @@ const ForumPost = () => {
     }
   };
 
-  const isAuthor = user && currentPost && currentPost.author._id === user._id;
+  const formatDate = (date) => new Date(date).toLocaleString('en-US', {
+    month: 'long', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit'
+  });
+
+  const isAuthor = user && currentPost && currentPost.author?._id === user._id;
   const isModerator = user && (user.role === 'admin' || user.role === 'moderator');
 
   if (isLoading && !currentPost) {
     return (
-      <div className='forum-post-page'>
-        <div className='forum-post-container'>
-          <div className='loading'>Loading post...</div>
-        </div>
+      <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '60vh' }}>
+        <Spinner animation="border" variant="primary" />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className='forum-post-page'>
-        <div className='forum-post-container'>
-          <div className='error'>{error}</div>
-        </div>
-      </div>
+      <Container className="py-5">
+        <Alert variant="danger">{error}</Alert>
+      </Container>
     );
   }
 
   if (!currentPost) {
     return (
-      <div className='forum-post-page'>
-        <div className='forum-post-container'>
-          <div className='error'>Post not found</div>
-        </div>
-      </div>
+      <Container className="py-5">
+        <Alert variant="warning">Post not found.</Alert>
+      </Container>
     );
   }
 
   return (
-    <div className='forum-post-page'>
-      <div className='forum-post-container'>
-        {/* Breadcrumb */}
-        <div className='breadcrumb'>
-          <span onClick={() => navigate('/forum')} className='breadcrumb-link'>
-            Forum
-          </span>
-          <span className='breadcrumb-separator'>›</span>
-          <span 
-            onClick={() => navigate(`/forum/${currentPost.board?.slug}`)} 
-            className='breadcrumb-link'
-          >
-            {currentPost.board?.name}
-          </span>
-          <span className='breadcrumb-separator'>›</span>
-          <span className='breadcrumb-current'>Post</span>
+    <Container className="py-4">
+      <Row className="justify-content-center">
+      <Col lg={10}>
+
+      {/* Breadcrumb */}
+      <nav className="mb-3 text-secondary small text-start">
+        <span className="breadcrumb-link" onClick={() => navigate('/forum')}>Forum</span>
+        <span className="mx-2">›</span>
+        <span className="breadcrumb-link" onClick={() => navigate(`/forum/${currentPost.board?.slug}`)}>
+          {currentPost.board?.name}
+        </span>
+        <span className="mx-2">›</span>
+        <span>Post</span>
+      </nav>
+
+      {/* Post Card */}
+      <div className="post-card mb-4">
+
+        {/* Post Header */}
+        <div className="post-card-header d-flex justify-content-between align-items-start gap-3 flex-wrap">
+          <div>
+            <h1 className="post-title-main mb-2 text-start">
+              {currentPost.title}
+              {currentPost.isPinned && <Badge bg="warning" text="dark" className="ms-2 fs-6">📌 Pinned</Badge>}
+              {currentPost.isLocked && <Badge bg="danger" className="ms-2 fs-6">🔒 Locked</Badge>}
+            </h1>
+            <div className="d-flex align-items-center gap-2 flex-wrap text-secondary small">
+              <div className='d-none d-md-block'>
+                <UserAvatar user={currentPost.author} size="small" showUsername={true} />
+              </div>
+              <span>•</span>
+              <span>{formatDate(currentPost.createdAt)}</span>
+              {currentPost.editedAt && <><span>•</span><span className="fst-italic">Edited</span></>}
+            </div>
+          </div>
+
+          <div className="d-flex gap-3 text-secondary small">
+            <span>👁️ {currentPost.stats?.viewCount || 0}</span>
+            <span>💬 {currentPost.stats?.commentCount || 0}</span>
+          </div>
         </div>
 
-        {/* Post Container */}
-        <div className='post-container'>
-          {/* Post Header */}
-          <div className='post-header'>
-            <div className='post-header-left'>
-              <h1 className='post-title-main'>
-                {currentPost.title}
-                {currentPost.isPinned && <span className='pinned-badge'>📌 Pinned</span>}
-                {currentPost.isLocked && <span className='locked-badge'>🔒 Locked</span>}
-              </h1>
-              
-              <div className='post-meta-info'>
-                <UserAvatar user={currentPost.author} size='small' showUsername={true} />
-                <span className='post-separator'>•</span>
-                <span className='post-date'>{formatDate(currentPost.createdAt)}</span>
-                {currentPost.editedAt && (
+        {/* Post Body */}
+        <div className="d-flex gap-3 p-3">
+          <div className="flex-shrink-0">
+            <VoteButtons
+              voteScore={currentPost.voteScore || 0}
+              userVote={currentPost.userVote}
+              onVote={handleVote}
+            />
+          </div>
+
+          <div className="flex-grow-1 min-width-0">
+            <p className="post-content text-start">{currentPost.content}</p>
+
+            {(isAuthor || isModerator) && (
+              <div className="d-flex gap-2 flex-wrap pt-3 border-top">
+                {isAuthor && (
+                  <Button variant="outline-secondary" size="sm">✏️ Edit</Button>
+                )}
+                {(isAuthor || isModerator) && (
+                  <Button variant="outline-danger" size="sm" onClick={() => setShowDeleteConfirm(true)}>
+                    🗑️ Delete
+                  </Button>
+                )}
+                {isModerator && (
                   <>
-                    <span className='post-separator'>•</span>
-                    <span className='edited-label'>Edited</span>
+                    <Button variant="outline-warning" size="sm" onClick={() => dispatch(togglePin(postId))}>
+                      {currentPost.isPinned ? '📌 Unpin' : '📌 Pin'}
+                    </Button>
+                    <Button variant="outline-warning" size="sm" onClick={() => dispatch(toggleLock(postId))}>
+                      {currentPost.isLocked ? '🔓 Unlock' : '🔒 Lock'}
+                    </Button>
                   </>
                 )}
               </div>
-            </div>
-
-            <div className='post-header-right'>
-              <div className='post-stats-small'>
-                <span className='stat-item-small'>
-                  <span className='stat-icon'>👁️</span>
-                  {currentPost.stats?.viewCount || 0}
-                </span>
-                <span className='stat-item-small'>
-                  <span className='stat-icon'>💬</span>
-                  {currentPost.stats?.commentCount || 0}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Post Body */}
-          <div className='post-body'>
-            <div className='post-vote-section'>
-              <VoteButtons
-                voteScore={currentPost.voteScore || 0}
-                userVote={currentPost.userVote}
-                onVote={handleVote}
-              />
-            </div>
-
-            <div className='post-content-section'>
-              <div className='post-content'>
-                {currentPost.content}
-              </div>
-
-              {/* Post Actions */}
-              {(isAuthor || isModerator) && (
-                <div className='post-actions'>
-                  {isAuthor && (
-                    <button className='action-btn edit-btn'>
-                      ✏️ Edit
-                    </button>
-                  )}
-                  {(isAuthor || isModerator) && (
-                    <button 
-                      className='action-btn delete-btn'
-                      onClick={() => setShowDeleteConfirm(true)}
-                    >
-                      🗑️ Delete
-                    </button>
-                  )}
-                  {isModerator && (
-                    <>
-                      <button
-                        className='action-btn mod-btn'
-                        onClick={() => dispatch(togglePin(postId))}
-                      >
-                        {currentPost.isPinned ? '📌 Unpin' : '📌 Pin'}
-                      </button>
-                      <button
-                        className='action-btn mod-btn'
-                        onClick={() => dispatch(toggleLock(postId))}
-                      >
-                        {currentPost.isLocked ? '🔓 Unlock' : '🔒 Lock'}
-                      </button>
-                    </>
-                  )}
-                </div>
-              )}
-            </div>
+            )}
           </div>
         </div>
-
-        {/* Comments Section */}
-        <CommentSection
-          postId={postId}
-          comments={comments}
-          isLocked={currentPost.isLocked}
-        />
-
-        {/* Delete Confirmation Modal */}
-        {showDeleteConfirm && (
-          <div className='modal-overlay' onClick={() => setShowDeleteConfirm(false)}>
-            <div className='confirm-modal' onClick={(e) => e.stopPropagation()}>
-              <h3>Delete Post?</h3>
-              <p>Are you sure you want to delete this post? This action cannot be undone.</p>
-              <div className='confirm-actions'>
-                <button className='cancel-btn' onClick={() => setShowDeleteConfirm(false)}>
-                  Cancel
-                </button>
-                <button className='confirm-delete-btn' onClick={handleDelete}>
-                  Delete
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
-    </div>
+
+      {/* Comments */}
+      <CommentSection
+        postId={postId}
+        comments={comments}
+        isLocked={currentPost.isLocked}
+      />
+
+      {/* Delete Confirmation Modal */}
+      <Modal show={showDeleteConfirm} onHide={() => setShowDeleteConfirm(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Delete Post?</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>Are you sure you want to delete this post? This action cannot be undone.</Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowDeleteConfirm(false)}>Cancel</Button>
+          <Button variant="danger" onClick={handleDelete}>Delete</Button>
+        </Modal.Footer>
+      </Modal>
+
+      </Col>
+      </Row>
+    </Container>
   );
 };
 
