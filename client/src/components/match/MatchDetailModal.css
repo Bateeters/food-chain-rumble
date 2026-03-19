@@ -31,7 +31,8 @@
     border-radius: 16px;
     max-width: 900px;
     width: 100%;
-    max-height: 90vh;
+    margin-top: 20px;
+    max-height: 80vh;
     overflow-y: auto;
     position: relative;
     animation: slideUp 0.3s ease;
@@ -243,6 +244,15 @@
 .player-row:hover {
   background: rgba(255, 255, 255, 0.05);
   border-color: rgba(0, 212, 255, 0.3);
+}
+
+.player-row.current-user-row {
+  background: rgba(0, 213, 255, 0.23);
+  border-color: rgba(0, 213, 255, 0.618);
+}
+
+.player-row.current-user-row:hover {
+  background: rgba(0, 213, 255, 0.421);
 }
 
 .col-player {

@@ -1,8 +1,10 @@
 import React from 'react';
+import { useSelector } from 'react-redux';
 import './MatchDetailModal.css';
 import CharacterIcon from '../character/CharacterIcon';
 
 const MatchDetailModal = ({ match, onClose }) => {
+    const { user } = useSelector((state) => state.auth);
     if (!match) return null;
 
     const formatDuration = (seconds) => {
@@ -36,7 +38,7 @@ const MatchDetailModal = ({ match, onClose }) => {
                 </button>
 
                 {/* Match Header */}
-                <div className={`match-header ${isTeam1Winner ? 'team1-won' : 'team2-won'}`}>
+                <div className={`match-header ${didUserWin ? 'team1-won' : 'team2-won'}`}>
                     <div className='match-result'>
                         <span className='result-icon'>{didUserWin ? '✓' : '✗'}</span>
                         <span className='result-text'>
@@ -80,7 +82,7 @@ const MatchDetailModal = ({ match, onClose }) => {
                                 <div className='col-damage'>Damage Taken</div>
                             </div>
                             {team1Players.map((player, idx) => (
-                                <div key={idx} className='player-row'>
+                                <div key={idx} className={`player-row ${player.user?._id === user?._id ? 'current-user-row' : ''}`}>
                                     <div className='col-player'>
                                         <span className='player-name'>{player.user?.username || 'Unknown'}</span>
                                     </div>
@@ -124,7 +126,7 @@ const MatchDetailModal = ({ match, onClose }) => {
                                 <div className='col-damage'>Damage Taken</div>
                             </div>
                             {team2Players.map((player, idx) => (
-                                <div key={idx} className='player-row'>
+                                <div key={idx} className={`player-row ${player.user?._id === user?._id ? 'current-user-row' : ''}`}>
                                     <div className='col-player'>
                                         <span className='player-name'>{player.user?.username || 'Unknown'}</span>
                                     </div>
