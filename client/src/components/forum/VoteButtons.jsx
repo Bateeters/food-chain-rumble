@@ -1,39 +1,30 @@
 import React from 'react';
+import { Button } from 'react-bootstrap';
 import './VoteButtons.css';
 
 const VoteButtons = ({ voteScore, userVote, onVote }) => {
-
-  const handleUpvote = () => {
-    const newVote = userVote === 'upvote' ? null : 'upvote';
-    onVote(newVote);
-  };
-
-  const handleDownvote = () => {
-    const newVote = userVote === 'downvote' ? null : 'downvote';
-    onVote(newVote);
-  };
+  const handleUpvote = () => onVote(userVote === 'upvote' ? null : 'upvote');
+  const handleDownvote = () => onVote(userVote === 'downvote' ? null : 'downvote');
 
   return (
-    <div className='vote-buttons'>
-      <button
+    <div className="vote-buttons">
+      <Button
+        variant="link"
         className={`vote-btn upvote-btn ${userVote === 'upvote' ? 'active' : ''}`}
         onClick={handleUpvote}
-        title='Upvote'
-      >
-        ▲
-      </button>
-      
+        title="Upvote"
+      >▲</Button>
+
       <span className={`vote-score ${voteScore > 0 ? 'positive' : voteScore < 0 ? 'negative' : ''}`}>
         {voteScore}
       </span>
-      
-      <button
+
+      <Button
+        variant="link"
         className={`vote-btn downvote-btn ${userVote === 'downvote' ? 'active' : ''}`}
         onClick={handleDownvote}
-        title='Downvote'
-      >
-        ▼
-      </button>
+        title="Downvote"
+      >▼</Button>
     </div>
   );
 };

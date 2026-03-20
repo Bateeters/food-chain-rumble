@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { Container, Row, Col, Button } from 'react-bootstrap';
 import authService from '../services/authService';
 import './VerifyEmail.css';
 
 const VerifyEmail = () => {
   const { token } = useParams();
-  const [status, setStatus] = useState('verifying'); // 'verifying' | 'success' | 'error'
+  const [status, setStatus] = useState('verifying');
   const [message, setMessage] = useState('');
 
   useEffect(() => {
@@ -19,42 +20,41 @@ const VerifyEmail = () => {
         setStatus('error');
       }
     };
-
     verify();
   }, [token]);
 
   return (
-    <div className="verify-email-page">
-      <div className="verify-email-container">
-        <div className="verify-email-card">
-          {status === 'verifying' && (
-            <>
-              <div className="verify-icon">⏳</div>
-              <h2>Verifying your email...</h2>
-              <p className="subtitle">Please wait a moment.</p>
-            </>
-          )}
-
-          {status === 'success' && (
-            <>
-              <div className="verify-icon">✅</div>
-              <h2>Email Verified!</h2>
-              <p className="subtitle">{message}</p>
-              <Link to="/login" className="btn-verify">Go to Login</Link>
-            </>
-          )}
-
-          {status === 'error' && (
-            <>
-              <div className="verify-icon">❌</div>
-              <h2>Verification Failed</h2>
-              <p className="subtitle">{message}</p>
-              <Link to="/register" className="btn-verify btn-verify--error">Back to Register</Link>
-            </>
-          )}
-        </div>
-      </div>
-    </div>
+    <Container className="py-5 d-flex align-items-center justify-content-center" style={{ minHeight: 'calc(100vh - 200px)' }}>
+      <Row className="justify-content-center w-100">
+        <Col xs={12} sm={8} md={6} lg={4}>
+          <div className="verify-email-card">
+            {status === 'verifying' && (
+              <>
+                <div className="verify-icon">⏳</div>
+                <h2>Verifying your email...</h2>
+                <p className="subtitle">Please wait a moment.</p>
+              </>
+            )}
+            {status === 'success' && (
+              <>
+                <div className="verify-icon">✅</div>
+                <h2>Email Verified!</h2>
+                <p className="subtitle">{message}</p>
+                <Button as={Link} to="/login" variant="primary" className="px-4 py-2">Go to Login</Button>
+              </>
+            )}
+            {status === 'error' && (
+              <>
+                <div className="verify-icon">❌</div>
+                <h2>Verification Failed</h2>
+                <p className="subtitle">{message}</p>
+                <Button as={Link} to="/register" variant="danger" className="px-4 py-2">Back to Register</Button>
+              </>
+            )}
+          </div>
+        </Col>
+      </Row>
+    </Container>
   );
 };
 

@@ -10,41 +10,31 @@
 }
 
 .vote-btn {
-  background: transparent;
-  border: none;
-  color: #666;
+  background: transparent !important;
+  border: none !important;
+  color: #666 !important;
   font-size: 1.25rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
   width: 36px;
   height: 36px;
-  display: flex;
+  display: flex !important;
   align-items: center;
   justify-content: center;
-  border-radius: 6px;
+  border-radius: 6px !important;
+  padding: 0 !important;
+  text-decoration: none !important;
+  box-shadow: none !important;
+  transition: all 0.3s ease !important;
 }
 
 .vote-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.1) !important;
 }
 
-.upvote-btn:hover {
-  color: #00d4ff;
-}
+.upvote-btn:hover { color: #00d4ff !important; }
+.upvote-btn.active { color: #00d4ff !important; background: rgba(0, 212, 255, 0.2) !important; }
 
-.upvote-btn.active {
-  color: #00d4ff;
-  background: rgba(0, 212, 255, 0.2);
-}
-
-.downvote-btn:hover {
-  color: #ff6b9d;
-}
-
-.downvote-btn.active {
-  color: #ff6b9d;
-  background: rgba(255, 107, 157, 0.2);
-}
+.downvote-btn:hover { color: #ff6b9d !important; }
+.downvote-btn.active { color: #ff6b9d !important; background: rgba(255, 107, 157, 0.2) !important; }
 
 .vote-score {
   font-size: 1.1rem;
@@ -54,10 +44,5 @@
   text-align: center;
 }
 
-.vote-score.positive {
-  color: #00d4ff;
-}
-
-.vote-score.negative {
-  color: #ff6b9d;
-}
+.vote-score.positive { color: #00d4ff; }
+.vote-score.negative { color: #ff6b9d; }

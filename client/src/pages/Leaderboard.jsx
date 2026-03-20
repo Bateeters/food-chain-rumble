@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
+import { Container, Row, Col, ButtonGroup, Button, Form, Spinner, Alert, Table } from 'react-bootstrap';
 import { fetchOverallLeaderboard, fetchCharacterLeaderboard, clearLeaderboard } from '../store/slices/leaderboardSlice';
 import { fetchCharacters } from '../store/slices/characterSlice';
 import './Leaderboard.css';
@@ -9,13 +10,11 @@ import CharacterIcon from '../components/character/CharacterIcon';
 const Leaderboard = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { rankings, pagination, isLoading, error } = useSelector(
-    (state) => state.leaderboard
-  );
+  const { rankings, pagination, isLoading, error } = useSelector((state) => state.leaderboard);
   const { characters } = useSelector((state) => state.characters);
 
-  const [viewMode, setViewMode] = useState('overall'); // 'overall' or 'character'
-  const [selectedGameMode, setSelectedGameMode] = useState('1v1_ranked') // Default to 1v1 ranked
+  const [viewMode, setViewMode] = useState('overall');
+  const [selectedGameMode, setSelectedGameMode] = useState('1v1_ranked');
   const [selectedCharacter, setSelectedCharacter] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -23,39 +22,25 @@ const Leaderboard = () => {
     .map((player, index) => ({ ...player, _rank: (pagination.currentPage - 1) * 100 + index + 1 }))
     .filter(player => player.username.toLowerCase().includes(searchQuery.toLowerCase()));
 
-  // Fetch characters for dropdown
   useEffect(() => {
-    if (characters.length === 0) {
-      dispatch(fetchCharacters());
-    }
+    if (characters.length === 0) dispatch(fetchCharacters());
   }, [dispatch, characters.length]);
 
-  // Fetch leaderboard data
   useEffect(() => {
     dispatch(clearLeaderboard());
-
     if (viewMode === 'overall') {
       dispatch(fetchOverallLeaderboard({ gameMode: selectedGameMode, page: 1, limit: 100 }));
     } else if (viewMode === 'character' && selectedCharacter) {
-      dispatch(fetchCharacterLeaderboard({
-        characterId: selectedCharacter,
-        gameMode: selectedGameMode,
-        page: 1,
-        limit: 100
-      }));
+      dispatch(fetchCharacterLeaderboard({ characterId: selectedCharacter, gameMode: selectedGameMode, page: 1, limit: 100 }));
     }
   }, [dispatch, viewMode, selectedGameMode, selectedCharacter]);
 
   const handleViewModeChange = (mode) => {
     setViewMode(mode);
-    if (mode === 'overall') {
-      setSelectedCharacter(null);
-    }
+    if (mode === 'overall') setSelectedCharacter(null);
   };
 
-  const handleCharacterClick = (id) => {
-    navigate(`/characters/${id}`);
-  };
+  const handleCharacterClick = (id) => navigate(`/characters/${id}`);
 
   const getRankBadgeColor = (rank) => {
     if (rank === 1) return '#ffd700';
@@ -72,186 +57,145 @@ const Leaderboard = () => {
   };
 
   return (
-    <div className='leaderboard-page'>
-      <div className='leaderboard-container'>
-        <div className='leaderboard-header'>
-          <h1>Leaderboard</h1>
-          <p>Top players across all game modes</p>
-        </div>
+    <Container className="py-4">
+      <Row className="justify-content-center">
+        <Col lg={10}>
 
-        {/* Filters */}
-        <div className='leaderboard-filters'>
-          {/* View Mode Toggle */}
-          <div className='filter-group'>
-            <label>View:</label>
-            <div className='button-group'>
-              <button
-                className={viewMode === 'overall' ? 'active' : ''}
-                onClick={() => handleViewModeChange('overall')}
-              >
-                Overall
-              </button>
-              <button
-                className={viewMode === 'character' ? 'active' : ''}
-                onClick={() => handleViewModeChange('character')}
-              >
-                By Character
-              </button>
-            </div>
+          {/* Header */}
+          <div className="leaderboard-header">
+            <h1>Leaderboard</h1>
+            <p>Top players across all game modes</p>
           </div>
 
-          {/* Game Mode Filter */}
-          <div className='filter-group'>
-            <label>Game Mode:</label>
-            <div className='button-group'>
-              <button
-                className={selectedGameMode === '1v1_ranked' ? 'active' : ''}
-                onClick={() => setSelectedGameMode('1v1_ranked')}
-              >
-                1v1
-              </button>
-              <button
-                className={selectedGameMode === '2v2_ranked' ? 'active' : ''}
-                onClick={() => setSelectedGameMode('2v2_ranked')}
-              >
-                2v2
-              </button>
-              <button
-                className={selectedGameMode === '3v3_ranked' ? 'active' : ''}
-                onClick={() => setSelectedGameMode('3v3_ranked')}
-              >
-                3v3
-              </button>
+          {/* Filters */}
+          <div className="leaderboard-filters d-flex flex-wrap align-items-center gap-3 mb-4">
+            <div className="d-flex align-items-center gap-2">
+              <span className="filter-label">View:</span>
+              <ButtonGroup size="sm">
+                {['overall', 'character'].map((mode) => (
+                  <Button
+                    key={mode}
+                    variant="outline-primary"
+                    className={viewMode === mode ? 'active' : ''}
+                    onClick={() => handleViewModeChange(mode)}
+                  >
+                    {mode === 'overall' ? 'Overall' : 'By Character'}
+                  </Button>
+                ))}
+              </ButtonGroup>
             </div>
-          </div>
 
-          {/* Username Search */}
-          <div className='filter-group'>
-            <label>Search:</label>
-            <input
-              type='text'
-              className='character-select'
-              placeholder='Search username...'
+            <div className="d-flex align-items-center gap-2">
+              <span className="filter-label">Mode:</span>
+              <ButtonGroup size="sm">
+                {[['1v1_ranked', '1v1'], ['2v2_ranked', '2v2'], ['3v3_ranked', '3v3']].map(([val, label]) => (
+                  <Button
+                    key={val}
+                    variant="outline-primary"
+                    className={selectedGameMode === val ? 'active' : ''}
+                    onClick={() => setSelectedGameMode(val)}
+                  >
+                    {label}
+                  </Button>
+                ))}
+              </ButtonGroup>
+            </div>
+
+            <Form.Control
+              type="text"
+              placeholder="Search username..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              className="leaderboard-search"
             />
-          </div>
 
-          {/* Character filter (only show in character view mode) */}
-          {viewMode === 'character' && (
-            <div className='filter-group'>
-              <label>Character:</label>
-              <select
+            {viewMode === 'character' && (
+              <Form.Select
                 value={selectedCharacter || ''}
                 onChange={(e) => setSelectedCharacter(e.target.value)}
-                className='character-select'
+                className="character-select"
               >
                 <option value="">Select a character...</option>
                 {characters.map((char) => (
-                  <option key={char._id} value={char._id}>
-                    {char.name}
-                  </option>
+                  <option key={char._id} value={char._id}>{char.name}</option>
                 ))}
-              </select>
-            </div>
-          )}
-        </div>
+              </Form.Select>
+            )}
+          </div>
 
-        {/* Leaderboard Table */}
-        <div className='leaderboard-content'>
-          {isLoading ? (
-            <div className='loading'>Loading leaderboard...</div>
-          ): error ? (
-            <div className='error'>{error}</div>
-          ) : filteredRankings.length === 0 ? (
-            <div className='empty-state'>
-              <h3>No rankings yet</h3>
-              <p>Be the first to compete and claim your spot!</p>
-            </div>
-          ) : (
-            <div className='leaderboard-table-wrapper'>
-              <table className='leaderboard-table'>
-                <thead>
-                  <tr>
-                    <th className='rank-col'>Rank</th>
-                    <th className='player-col'>Player</th>
-                    {viewMode === 'overall' && <th className='character-col'>Top Characters</th>}
-                    <th className='mmr-col'>MMR</th>
-                    {/*
-                    <th className='games-col'>Games</th>
-                    <th className='wins-col'>Wins</th>
-                    <th className='winrate-col'>Win Rate</th>
-                    */}
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredRankings.map((player) => {
-                    const rank = player._rank;
-                    return (
-                      <tr key={player._id || rank} className={rank <= 3 ? 'top-three': ''}>
-
-                        <td className='rank-col'>
-                          <div
-                            className='rank-badge'
-                            style={{ backgroundColor: getRankBadgeColor(rank) }}
-                          >
-                            {getRankIcon(rank)} {rank}
-                          </div>
-                        </td>
-
-                        <td className='player-col'>
-                          <div className='player-info'>
-                            <span className='player-name'>{player.username}</span>
-                          </div>
-                        </td>
-                        
-                        {viewMode === 'overall' && (
-                          <td className='character-col'>
-                            <div className='top-characters'>
-                              {player.topCharacters?.slice(0,3).map((char, idx) => (
-                                <div key={idx} className='character-mini' title={`${char.name}: ${char.mmr} MMR`}>
-                                  <div className='character-mini-icon' onClick={() => handleCharacterClick(char._id)}>
-                                    <CharacterIcon character={char} />
-                                  </div>
-                                </div>
-                              ))}
+          {/* Leaderboard Content */}
+          <div className="leaderboard-content">
+            {isLoading ? (
+              <div className="text-center py-5">
+                <Spinner animation="border" variant="primary" />
+              </div>
+            ) : error ? (
+              <Alert variant="danger">{error}</Alert>
+            ) : filteredRankings.length === 0 ? (
+              <div className="empty-state">
+                <h3>No rankings yet</h3>
+                <p>Be the first to compete and claim your spot!</p>
+              </div>
+            ) : (
+              <div className="leaderboard-table-wrapper">
+                <Table className="leaderboard-table mb-0">
+                  <thead>
+                    <tr>
+                      <th className="rank-col">Rank</th>
+                      <th className="player-col">Player</th>
+                      {viewMode === 'overall' && <th className="character-col">Top Characters</th>}
+                      <th className="mmr-col">MMR</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredRankings.map((player) => {
+                      const rank = player._rank;
+                      return (
+                        <tr key={player._id || rank} className={rank <= 3 ? 'top-three' : ''}>
+                          <td className="rank-col">
+                            <div className="rank-badge" style={{ backgroundColor: getRankBadgeColor(rank) }}>
+                              {getRankIcon(rank)} {rank}
                             </div>
                           </td>
-                        )}
+                          <td className="player-col">
+                            <div className="player-info">
+                              <span className="player-name">{player.username}</span>
+                            </div>
+                          </td>
+                          {viewMode === 'overall' && (
+                            <td className="character-col">
+                              <div className="top-characters">
+                                {player.topCharacters?.slice(0, 3).map((char, idx) => (
+                                  <div key={idx} className="character-mini" title={`${char.name}: ${char.mmr} MMR`}>
+                                    <div className="character-mini-icon" onClick={() => handleCharacterClick(char._id)}>
+                                      <CharacterIcon character={char} />
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </td>
+                          )}
+                          <td className="mmr-col">
+                            <span className="mmr-value">{Math.round(player.mmr || player.rating)}</span>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </Table>
+              </div>
+            )}
 
-                        <td className='mmr-col'>
-                          <span className='mmr-value'>{Math.round(player.mmr || player.rating)}</span>
-                        </td>
+            {filteredRankings.length > 0 && (
+              <div className="leaderboard-footer">
+                <p>Showing {filteredRankings.length} of {pagination.totalPlayers} players</p>
+              </div>
+            )}
+          </div>
 
-                        {/*
-                        <td className='games-col'>{player.gamesPlayed || 0}</td>
-                        <td className='wins-col'>{player.wins || 0}</td>
-                        <td className='wins-col'>
-                          <span>{player.gamesPlayed > 0
-                            ? `${((player.wins / player.gamesPlayed) * 100).toFixed(1)}%`
-                            : '0%'}
-                          </span>
-                        </td>
-                        */}
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
-
-          {/* Pagination Info */}
-          {filteredRankings.length > 0 && (
-            <div className='leaderboard-footer'>
-              <p>
-                Showing {filteredRankings.length} of {pagination.totalPlayers} players
-              </p>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
+        </Col>
+      </Row>
+    </Container>
   );
 };
 

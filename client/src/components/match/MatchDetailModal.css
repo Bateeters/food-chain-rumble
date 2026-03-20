@@ -1,53 +1,12 @@
-/* Modal Overlay */
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.85);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-    animation: fadeIn 0.2s ease;
-    padding: 1rem;
-    overflow-y: auto;
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
-}
-
 /* Modal Container */
 .match-detail-modal {
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-    border: 2px solid rgba(0, 212, 255, 0.3);
-    border-radius: 16px;
-    max-width: 900px;
-    width: 100%;
-    margin-top: 20px;
-    max-height: 80vh;
-    overflow-y: auto;
-    position: relative;
-    animation: slideUp 0.3s ease;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-}
-
-@keyframes slideUp {
-  from {
-    transform: translateY(50px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border: 2px solid rgba(0, 212, 255, 0.3);
+  border-radius: 16px;
+  max-height: 80vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
 }
 
 /* Close Button */
@@ -98,9 +57,7 @@
   margin-bottom: 0.75rem;
 }
 
-.result-icon {
-  font-size: 2rem;
-}
+.result-icon { font-size: 2rem; }
 
 .result-text {
   font-size: 2rem;
@@ -255,75 +212,24 @@
   background: rgba(0, 213, 255, 0.421);
 }
 
-.col-player {
-  display: flex;
-  align-items: center;
-}
+.col-player { display: flex; align-items: center; }
+.player-name { color: #fff; font-weight: 600; }
 
-.player-name {
-  color: #fff;
-  font-weight: 600;
-}
+.match-detail-char-icon { width: 50px; height: 50px; }
 
-.match-detail-char-icon {
-  width: 50px;
-  height: 50px;
-}
+.col-character { display: flex; align-items: center; gap: 0.75rem; }
+.character-name { color: #fff; font-weight: 500; }
 
-.col-character {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
+.col-kda { text-align: center; }
+.kda-stats { color: #00d4ff; font-weight: 600; font-size: 1.05rem; }
 
-.character-name {
-  color: #fff;
-  font-weight: 500;
-}
+.col-damage { text-align: center; }
+.damage-dealt, .damage-taken { color: #ff6b9d; font-weight: 600; }
 
-.col-kda {
-  text-align: center;
-}
-
-.kda-stats {
-  color: #00d4ff;
-  font-weight: 600;
-  font-size: 1.05rem;
-}
-
-.col-damage {
-  text-align: center;
-}
-
-.damage-dealt,
-.damage-taken {
-  color: #ff6b9d;
-  font-weight: 600;
-}
-
-/* Responsive */
 @media (max-width: 768px) {
-  .match-detail-modal {
-    margin: 0;
-    border-radius: 0;
-    max-height: 100vh;
-  }
-
-  .teams-container {
-    padding: 1rem;
-  }
-
-  .table-header,
-  .player-row {
-    grid-template-columns: 1fr 1fr 1fr;
-    font-size: 0.85rem;
-  }
-
-  .col-damage {
-    display: none;
-  }
-
-  .result-text {
-    font-size: 1.5rem;
-  }
+  .match-detail-modal { border-radius: 0; max-height: 100vh; }
+  .teams-container { padding: 1rem; }
+  .table-header, .player-row { grid-template-columns: 1fr 1fr 1fr; font-size: 0.85rem; }
+  .col-damage { display: none; }
+  .result-text { font-size: 1.5rem; }
 }
