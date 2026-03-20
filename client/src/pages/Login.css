@@ -1,3 +1,7 @@
+.login-page {
+  min-height: calc(100vh - 200px);
+}
+
 .login-card {
   background-color: #16213e;
   border-radius: 12px;

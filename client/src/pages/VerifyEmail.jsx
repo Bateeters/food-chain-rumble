@@ -24,7 +24,7 @@ const VerifyEmail = () => {
   }, [token]);
 
   return (
-    <Container className="py-5 d-flex align-items-center justify-content-center" style={{ minHeight: 'calc(100vh - 200px)' }}>
+    <Container className="verify-page py-5 d-flex align-items-center justify-content-center">
       <Row className="justify-content-center w-100">
         <Col xs={12} sm={8} md={6} lg={4}>
           <div className="verify-email-card">

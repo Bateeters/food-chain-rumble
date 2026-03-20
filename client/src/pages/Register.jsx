@@ -48,7 +48,7 @@ const Register = () => {
   };
 
   return (
-    <Container className="py-5 d-flex align-items-center justify-content-center" style={{ minHeight: 'calc(100vh - 200px)' }}>
+    <Container className="register-page py-5 d-flex align-items-center justify-content-center">
       <Row className="justify-content-center w-100">
         <Col xs={12} sm={10} md={7} lg={5}>
           <div className="register-card">

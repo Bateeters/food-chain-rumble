@@ -95,25 +95,31 @@ const Dashboard = () => {
           </Row>
         </Col>
         <Col xs={12}>
-          <div className="stat-card h-100 d-flex flex-wrap align-items-center justify-content-center">
-            <div className='col-xl-2 col-md-4 col-6 pb-xl-0 pb-3'>
-              <div className="stat-label">Total Matches</div>
-              <div className="stat-value">{stats?.totalMatches || 0}</div>
-            </div>
-            <div className='col-xl-1 col-md-4 col-6 pb-xl-0 pb-3'>
-              <div className="stat-label">Win Rate</div>
-              <div className="stat-value">{stats?.winRate || 0}%</div>
-            </div>
-            <div className="col-xl-2 col-md-4 col-sm-6 col-12 stat-value pb-xl-0 pb-4">{stats?.totalWins || 0}W — {stats?.totalLosses || 0}L</div>
-            <div className="stat-value col-xl-3 col-md-4 col-sm-6 col-12 pb-md-0 pb-4">K: {stats?.totalKills || 0} | D: {stats?.totalDeaths || 0} | A: {stats?.totalAssists || 0}</div>
-            <div className='col-xl-2 col-md-4 col-6 pb-md-0'>
-              <div className="stat-label">Total Damage Dealt</div>
-              <div className="stat-value">{(stats?.totalDamageDealt || 0).toLocaleString()}</div>
-            </div>
-            <div className='col-xl-2 col-md-4 col-6'>
-              <div className="stat-label">Total Damage Taken</div>
-              <div className="stat-value">{(stats?.totalDamageTaken || 0).toLocaleString()}</div>
-            </div>
+          <div className="stat-card h-100">
+            <Row className="align-items-center justify-content-center gy-2">
+              <Col xl={2} md={4} xs={6}>
+                <div className="stat-label">Total Matches</div>
+                <div className="stat-value">{stats?.totalMatches || 0}</div>
+              </Col>
+              <Col xl={1} md={4} xs={6}>
+                <div className="stat-label">Win Rate</div>
+                <div className="stat-value">{stats?.winRate || 0}%</div>
+              </Col>
+              <Col xl={2} md={4} sm={6} xs={12} className="stat-value">
+                {stats?.totalWins || 0}W — {stats?.totalLosses || 0}L
+              </Col>
+              <Col xl={3} md={4} sm={6} xs={12} className="stat-value">
+                K: {stats?.totalKills || 0} | D: {stats?.totalDeaths || 0} | A: {stats?.totalAssists || 0}
+              </Col>
+              <Col xl={2} md={4} xs={6}>
+                <div className="stat-label">Total Damage Dealt</div>
+                <div className="stat-value">{(stats?.totalDamageDealt || 0).toLocaleString()}</div>
+              </Col>
+              <Col xl={2} md={4} xs={6}>
+                <div className="stat-label">Total Damage Taken</div>
+                <div className="stat-value">{(stats?.totalDamageTaken || 0).toLocaleString()}</div>
+              </Col>
+            </Row>
           </div>
         </Col>
       </Row>

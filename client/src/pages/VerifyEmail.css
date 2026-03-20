@@ -1,3 +1,7 @@
+.verify-page {
+  min-height: calc(100vh - 200px);
+}
+
 .verify-email-card {
   background-color: #16213e;
   border-radius: 12px;

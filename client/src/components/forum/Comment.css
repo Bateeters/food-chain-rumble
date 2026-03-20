@@ -1,1 +1,8 @@
-/* Replaced by Bootstrap — file kept to avoid import errors if referenced elsewhere */
+.comment-separator {
+  border-top: 1px solid #444444;
+}
+
+.comment-text {
+  white-space: pre-wrap;
+  word-break: break-word;
+}

@@ -37,7 +37,7 @@ const Login = () => {
   };
 
   return (
-    <Container className="py-5 d-flex align-items-center justify-content-center" style={{ minHeight: 'calc(100vh - 200px)' }}>
+    <Container className="login-page py-5 d-flex align-items-center justify-content-center">
       <Row className="justify-content-center w-100">
         <Col xs={12} sm={10} md={7} lg={5}>
           <div className="login-card">

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { Button, Form, Modal } from 'react-bootstrap';
+import './Comment.css';
 import { voteOnComment, createComment, updateComment, deleteComment } from '../../store/slices/forumSlice';
 import UserAvatar from '../user/UserAvatar';
 import VoteButtons from './VoteButtons';
@@ -74,7 +75,7 @@ const Comment = ({ comment, postId, isReply = false }) => {
   const isModerator = user && (user.role === 'admin' || user.role === 'moderator');
 
   return (
-    <div className="pt-3" style={{ borderTop:'1px solid #444444'}}>
+    <div className="comment-separator pt-3">
       <div className={`d-flex gap-3 ${isReply ? 'ms-4 ps-3 border-start' : ''}`}>
         <div className="flex-shrink-0">
           <VoteButtons voteScore={comment.voteScore || 0} userVote={comment.userVote} onVote={handleVote} />
@@ -116,7 +117,7 @@ const Comment = ({ comment, postId, isReply = false }) => {
               </div>
             </Form>
           ) : (
-            <p className="mb-2 text-start" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+            <p className="mb-2 text-start comment-text">
               {comment.content}
             </p>
           )}

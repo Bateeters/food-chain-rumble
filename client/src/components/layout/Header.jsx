@@ -28,7 +28,7 @@ const Header = () => {
         <Navbar.Collapse id="main-nav" className="mobile-fullscreen">
 
           {/* Close button — only visible in mobile overlay */}
-          <button className="mobile-close-btn" onClick={close} aria-label="Close menu">✕</button>
+          <Button bsPrefix="mobile-close-btn" onClick={close} aria-label="Close menu">✕</Button>
 
           <Nav className="me-auto mobile-nav-links">
             <Nav.Link as={NavLink} to="/" onClick={close}>Home</Nav.Link>

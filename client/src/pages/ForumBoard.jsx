@@ -94,15 +94,16 @@ const ForumBoard = () => {
       </nav>
 
       {/* Board Header */}
-      <div className="board-header d-flex flex-wrap justify-content-between text-start align-items-center mb-4 p-3 rounded"
-        style={{ borderLeft: `4px solid ${currentBoard.color || '#00d4ff'}` }}>
-        <div className='col-12 col-md-7'>
-          <h2 className="mb-1">{currentBoard.name}</h2>
-          <p className="text-secondary mb-0 small">{currentBoard.description}</p>
-        </div>
-        <div className='ms-auto pt-md-0 pt-3'>
-          <Button variant="primary" className='py-1 px-3' onClick={handleCreatePost}>+ New Post</Button>
-        </div>
+      <div className="board-header mb-4 p-3 rounded" style={{ borderLeft: `4px solid ${currentBoard.color || '#00d4ff'}` }}>
+        <Row className="align-items-center g-0">
+          <Col xs={12} md={7} className="text-start">
+            <h2 className="mb-1">{currentBoard.name}</h2>
+            <p className="text-secondary mb-0 small">{currentBoard.description}</p>
+          </Col>
+          <Col xs="auto" className="ms-auto pt-md-0 pt-3">
+            <Button variant="primary" className='py-1 px-3' onClick={handleCreatePost}>+ New Post</Button>
+          </Col>
+        </Row>
       </div>
 
       {/* Sort Controls */}
