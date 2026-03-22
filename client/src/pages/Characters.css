@@ -1,54 +1,65 @@
 .characters-page {
-  min-height: calc(100vh - 200px);
-  padding: 2rem;
-  background: linear-gradient(135deg, #0f0f1e 0%, #1a1a2e 100%);
+  position: relative;
 }
 
-.characters-container {
-  max-width: 1400px;
-  margin: 0 auto;
+.characters-hero {
+  padding: 4rem 0 3rem;
 }
 
-.characters-header {
-  text-align: center;
-  margin-bottom: 3rem;
+.characters-kicker {
+  margin-bottom: 0.75rem;
+  color: var(--fcr-accent-gold);
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  font-size: 0.78rem;
 }
 
-.characters-header h1 {
-  color: #00d4ff;
-  font-size: 3rem;
-  margin-bottom: 0.5rem;
-  text-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+.characters-title {
+  margin-bottom: 1rem;
+  font-size: clamp(2.6rem, 5vw, 4.8rem);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  line-height: 0.95;
 }
 
-.characters-header p {
-  color: #888;
-  font-size: 1.2rem;
+.characters-copy {
+  max-width: 40rem;
+  color: var(--fcr-text-muted);
+  font-size: 1.05rem;
+  line-height: 1.7;
 }
 
-.characters-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 2rem;
+.characters-hero-actions {
+  margin-top: 1.75rem;
 }
 
-.loading, .error {
-  text-align: center;
-  padding: 4rem 2rem;
-  color: #888;
-  font-size: 1.2rem;
+.characters-hero-panel {
+  min-height: 18rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: end;
+  padding: 1.75rem;
+  border-radius: 1.6rem;
+  border: 1px dashed var(--fcr-border-strong);
+  background:
+    linear-gradient(145deg, rgba(185, 122, 77, 0.28), rgba(92, 57, 131, 0.2), rgba(183, 217, 243, 0.15)),
+    linear-gradient(180deg, rgba(248, 232, 212, 0.04), rgba(42, 20, 12, 0.42));
+  box-shadow: var(--fcr-shadow);
 }
 
-.error {
-  color: #e74c3c;
+.characters-hero-panel span {
+  color: var(--fcr-text);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-weight: 700;
 }
 
-@media (max-width: 768px) {
-  .characters-header h1 {
-    font-size: 2rem;
-  }
+.characters-hero-panel small {
+  margin-top: 0.5rem;
+  max-width: 18rem;
+  color: var(--fcr-text-muted);
+}
 
-  .characters-grid {
-    grid-template-columns: 1fr;
-  }
+.characters-grid-section {
+  padding: 0 0 4rem;
 }

@@ -22,13 +22,14 @@ const Header = () => {
 
   return (
     <Navbar expand="md" sticky="top" className="site-header" expanded={expanded} onToggle={setExpanded}>
-      <Container>
-        <Navbar.Brand as={Link} to="/" onClick={close}>Food Chain Rumble</Navbar.Brand>
-        <Navbar.Toggle aria-controls="main-nav" className='mobile-nav-btn'/>
+      <Container className="header-shell">
+        <Navbar.Brand as={Link} to="/" onClick={close} className="brand-lockup">
+          <span className="brand-kicker">Alpha Build</span>
+          <span className="brand-title">Food Chain Rumble</span>
+        </Navbar.Brand>
+        <Navbar.Toggle aria-controls="main-nav" className="mobile-nav-btn" />
         <Navbar.Collapse id="main-nav" className="mobile-fullscreen">
-
-          {/* Close button — only visible in mobile overlay */}
-          <Button bsPrefix="mobile-close-btn" onClick={close} aria-label="Close menu">✕</Button>
+          <Button bsPrefix="mobile-close-btn" onClick={close} aria-label="Close menu">x</Button>
 
           <Nav className="me-auto mobile-nav-links">
             <Nav.Link as={NavLink} to="/" onClick={close}>Home</Nav.Link>
@@ -40,7 +41,7 @@ const Header = () => {
           <Nav className="flex-row mobile-auth-btns">
             {isAuthenticated ? (
               <>
-                <Nav.Link as={NavLink} to="/dashboard" onClick={close}>
+                <Nav.Link as={NavLink} to="/dashboard" onClick={close} className="dashboard-link">
                   <UserAvatar user={user} size="small" showUsername={true} />
                 </Nav.Link>
                 <Button variant="outline-danger" size="sm" className="ms-2 my-auto logout-btn" onClick={handleLogout}>
@@ -53,12 +54,11 @@ const Header = () => {
                   Login
                 </Button>
                 <Button as={Link} to="/register" variant="primary" size="sm" className="ms-2 my-auto py-1 px-lg-3 px-2" onClick={close}>
-                  Sign Up
+                  Play Now
                 </Button>
               </>
             )}
           </Nav>
-
         </Navbar.Collapse>
       </Container>
     </Navbar>

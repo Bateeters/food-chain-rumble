@@ -1,3 +1,123 @@
 .App {
-  text-align: center;
+  text-align: left;
+  position: relative;
+  overflow-x: clip;
+  overflow-y: visible;
+}
+
+.app-side-chains {
+  display: none;
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.side-chain {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 72px;
+  overflow: hidden;
+  opacity: 0.8;
+}
+
+.side-chain-left {
+  left: 0;
+}
+
+.side-chain-right {
+  right: 0;
+}
+
+.side-chain-track {
+  position: absolute;
+  top: -160px;
+  bottom: -160px;
+  width: 100%;
+  background-image:
+    radial-gradient(circle at center 20px, rgba(248, 232, 212, 0.95) 0 11px, transparent 11.5px),
+    radial-gradient(circle at center 68px, rgba(248, 232, 212, 0.95) 0 11px, transparent 11.5px),
+    linear-gradient(
+      90deg,
+      transparent calc(50% - 14px),
+      rgba(183, 217, 243, 0.8) calc(50% - 14px),
+      rgba(183, 217, 243, 0.8) calc(50% - 8px),
+      transparent calc(50% - 8px),
+      transparent calc(50% + 8px),
+      rgba(183, 217, 243, 0.8) calc(50% + 8px),
+      rgba(183, 217, 243, 0.8) calc(50% + 14px),
+      transparent calc(50% + 14px)
+    );
+  background-size: 72px 96px;
+  background-repeat: repeat-y;
+  filter: drop-shadow(0 0 12px rgba(242, 184, 75, 0.22));
+}
+
+.side-chain-left .side-chain-track {
+  animation: chainDriftUp 8s linear infinite;
+}
+
+.side-chain-right .side-chain-track {
+  animation: chainDriftDown 8s linear infinite;
+}
+
+.App::before,
+.App::after {
+  content: '';
+  position: fixed;
+  width: 28rem;
+  height: 28rem;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(10px);
+  opacity: 0.45;
+  z-index: 0;
+}
+
+.App::before {
+  top: -10rem;
+  left: -8rem;
+  background: radial-gradient(circle, rgba(223, 95, 160, 0.24), transparent 68%);
+}
+
+.App::after {
+  right: -10rem;
+  bottom: 10rem;
+  background: radial-gradient(circle, rgba(183, 217, 243, 0.2), transparent 68%);
+}
+
+.main-content,
+.footer {
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes chainDriftUp {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-96px);
+  }
+}
+
+@keyframes chainDriftDown {
+  from {
+    transform: translateY(-96px);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 768px) {
+  .side-chain {
+    width: 40px;
+    opacity: 0.45;
+  }
+
+  .side-chain-track {
+    background-size: 40px 80px;
+  }
 }

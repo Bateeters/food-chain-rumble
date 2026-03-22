@@ -18,27 +18,25 @@ const MatchDetailModal = ({ match, onClose }) => {
     month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit'
   });
 
-  const team1Players = match.players.filter(p => p.team === 1);
-  const team2Players = match.players.filter(p => p.team === 2);
+  const team1Players = match.players.filter((p) => p.team === 1);
+  const team2Players = match.players.filter((p) => p.team === 2);
   const didUserWin = match.result === 'win';
   const isTeam1Winner = match.winningTeam === 1;
 
   return (
     <Modal show onHide={onClose} centered size="xl" contentClassName="border-0 p-0 bg-transparent">
       <div className="match-detail-modal">
-        <button className="modal-close" onClick={onClose}>✕</button>
+        <button className="modal-close" onClick={onClose}>x</button>
 
-        {/* Match Header */}
         <div className={`match-header ${didUserWin ? 'team1-won' : 'team2-won'}`}>
           <div className="match-result">
-            <span className="result-icon">{didUserWin ? '✓' : '✗'}</span>
-            <span className="result-text">{didUserWin ? 'VICTORY' : 'DEFEAT'}</span>
+            <span className="result-icon">{didUserWin ? 'WIN' : 'LOSS'}</span>
+            <span className="result-text">{didUserWin ? 'Victory' : 'Defeat'}</span>
           </div>
           <div className="match-mode">{match.gameMode.replace('_', ' ').toUpperCase()}</div>
           <div className="match-date">{formatDate(match.endedAt)}</div>
         </div>
 
-        {/* Match Info Bar */}
         <div className="match-info-bar">
           <div className="info-item">
             <span className="info-label">Duration:</span>
@@ -54,13 +52,11 @@ const MatchDetailModal = ({ match, onClose }) => {
           </div>
         </div>
 
-        {/* Teams */}
         <div className="teams-container">
-          {/* Team 1 */}
           <div className={`team-section ${isTeam1Winner ? 'winner' : ''}`}>
             <div className="team-header">
               <h3>Team 1</h3>
-              {isTeam1Winner && <span className="winner-badge">🏆 WINNER</span>}
+              {isTeam1Winner && <span className="winner-badge">Winner</span>}
             </div>
             <div className="players-table">
               <div className="table-header">
@@ -95,11 +91,10 @@ const MatchDetailModal = ({ match, onClose }) => {
 
           <div className="vs-divider">VS</div>
 
-          {/* Team 2 */}
           <div className={`team-section ${!isTeam1Winner ? 'winner' : ''}`}>
             <div className="team-header">
               <h3>Team 2</h3>
-              {!isTeam1Winner && <span className="winner-badge">🏆 WINNER</span>}
+              {!isTeam1Winner && <span className="winner-badge">Winner</span>}
             </div>
             <div className="players-table">
               <div className="table-header">

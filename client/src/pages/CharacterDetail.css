@@ -1,5 +1,9 @@
+.character-detail-page {
+  position: relative;
+}
+
 .btn-back-top {
-  font-weight: 600;
+  font-weight: 700;
   transition: transform 0.2s;
 }
 
@@ -7,142 +11,224 @@
   transform: translateX(-4px);
 }
 
-/* Character Header */
-.character-header {
-  background: linear-gradient(135deg, #16213e 0%, #1e3a5f 100%);
-  border-radius: 16px;
+.character-detail-hero {
+  padding: 3rem 0 2rem;
+}
+
+.character-hero-panel {
   padding: 2rem;
-  border: 2px solid #2d3561;
+  border-radius: 2rem;
+  border: 1px solid var(--fcr-border);
+  background:
+    radial-gradient(circle at 78% 20%, rgba(183, 217, 243, 0.18), transparent 16%),
+    linear-gradient(140deg, rgba(58, 30, 24, 0.95), rgba(36, 20, 59, 0.84));
+  box-shadow: var(--fcr-shadow);
+}
+
+.character-detail-kicker,
+.section-heading p {
+  margin-bottom: 0.8rem;
+  color: var(--fcr-accent-gold);
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  font-size: 0.78rem;
+}
+
+.character-title {
+  color: var(--fcr-text);
+  font-size: clamp(2.6rem, 5vw, 4.8rem);
+  font-weight: 800;
+  line-height: 0.95;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 1rem;
+}
+
+.role-badge-large {
+  font-size: 0.82rem !important;
+  font-weight: 700 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  padding: 0.65rem 1rem !important;
+  border-radius: 999px !important;
+}
+
+.character-tagline {
+  color: var(--fcr-text-muted);
+  font-size: 1.08rem;
+  line-height: 1.7;
+  max-width: 38rem;
+}
+
+.character-hero-visual {
+  min-height: 22rem;
+  padding: 1.5rem;
+  border-radius: 1.6rem;
+  border: 1px dashed var(--fcr-border-strong);
+  background:
+    linear-gradient(145deg, rgba(185, 122, 77, 0.28), rgba(92, 57, 131, 0.18), rgba(183, 217, 243, 0.15)),
+    linear-gradient(180deg, rgba(248, 232, 212, 0.03), rgba(42, 20, 12, 0.4));
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 .character-image-large {
-  width: 160px;
-  height: 160px;
-  border-radius: 50%;
+  width: 10rem;
+  height: 10rem;
+  border-radius: 1.8rem;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 5rem;
-  font-weight: bold;
-}
-
-.character-title {
-  color: #00d4ff;
-  font-size: 2.5rem;
   font-weight: 700;
+  background: rgba(248, 232, 212, 0.06);
+  border: 1px solid rgba(248, 232, 212, 0.16);
 }
 
-.role-badge-large {
-  font-size: 0.9rem !important;
-  font-weight: 600 !important;
+.character-visual-caption span,
+.character-visual-caption small {
+  display: block;
+}
+
+.character-visual-caption span {
+  color: var(--fcr-text);
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 1px;
-  padding: 0.5rem 1.2rem !important;
-  border-radius: 25px !important;
+  letter-spacing: 0.1em;
 }
 
-.character-tagline {
-  color: #ccc;
-  font-size: 1.1rem;
-  line-height: 1.6;
+.character-visual-caption small {
+  margin-top: 0.45rem;
+  color: var(--fcr-text-muted);
 }
 
-/* Abilities Section */
-.abilities-section {
-  background-color: #16213e;
-  border-radius: 16px;
+.character-detail-content {
+  padding: 0 0 4rem;
+}
+
+.abilities-section,
+.lore-section {
   padding: 2rem;
-  border: 2px solid #2d3561;
+  border-radius: 1.75rem;
+  border: 1px solid var(--fcr-border);
+  background:
+    linear-gradient(180deg, rgba(185, 122, 77, 0.08), transparent 20%),
+    var(--fcr-surface);
+  box-shadow: var(--fcr-shadow);
 }
 
-.abilities-section h2 {
-  color: #00d4ff;
-  font-size: 2rem;
+.section-heading h2 {
   margin-bottom: 1.5rem;
-  text-align: center;
+  color: var(--fcr-text);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
 .ability-card {
-  background-color: rgba(0, 0, 0, 0.3);
-  border-radius: 12px;
-  padding: 1.5rem;
-  border-left: 4px solid #00d4ff;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 1rem;
+  padding: 1.35rem;
+  background: rgba(248, 232, 212, 0.04);
+  border: 1px solid rgba(248, 232, 212, 0.08);
+  border-radius: 1.25rem;
+}
+
+.ability-index {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(183, 217, 243, 0.14);
+  color: var(--fcr-highlight);
+  font-weight: 800;
 }
 
 .ability-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
+  gap: 0.75rem;
+  margin-bottom: 0.85rem;
   flex-wrap: wrap;
-  gap: 0.5rem;
 }
 
 .ability-name {
-  color: #00d4ff;
-  font-size: 1.3rem;
-  font-weight: 600;
+  color: var(--fcr-text);
+  font-size: 1.2rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0;
 }
 
 .ability-type-badge {
-  padding: 0.4rem 0.9rem;
-  border-radius: 20px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: white;
+  padding: 0.45rem 0.8rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 800;
   text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.ability-description,
+.lore-text {
+  color: var(--fcr-text-muted);
+  line-height: 1.7;
 }
 
 .ability-description {
-  color: #ccc;
-  line-height: 1.6;
   margin-bottom: 1rem;
 }
 
 .ability-stats {
   display: flex;
-  gap: 2rem;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .ability-stat {
-  display: flex;
-  gap: 0.5rem;
+  min-width: 7rem;
+  padding: 0.75rem 0.9rem;
+  border-radius: 1rem;
+  background: rgba(36, 20, 59, 0.36);
+  border: 1px solid rgba(183, 217, 243, 0.12);
 }
 
 .ability-stat-label {
-  color: #888;
-  font-weight: 600;
+  display: block;
+  color: var(--fcr-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 0.68rem;
+  margin-bottom: 0.35rem;
 }
 
 .ability-stat-value {
-  color: #00d4ff;
-  font-weight: 700;
-}
-
-/* Lore Section */
-.lore-section {
-  background-color: #16213e;
-  border-radius: 16px;
-  padding: 2rem;
-  border: 2px solid #2d3561;
-}
-
-.lore-section h2 {
-  color: #00d4ff;
-  font-size: 2rem;
-  margin-bottom: 1rem;
-  text-align: center;
+  color: var(--fcr-accent-gold);
+  font-weight: 800;
 }
 
 .lore-text {
-  color: #ccc;
-  font-size: 1.1rem;
-  line-height: 1.8;
-  text-align: center;
-  font-style: italic;
+  font-size: 1.02rem;
 }
 
 @media (max-width: 768px) {
-  .character-title { font-size: 2rem; }
-  .character-image-large { width: 120px; height: 120px; font-size: 3.5rem; }
+  .character-hero-panel,
+  .abilities-section,
+  .lore-section {
+    padding: 1.5rem;
+  }
+
+  .character-image-large {
+    width: 8rem;
+    height: 8rem;
+  }
+
+  .ability-card {
+    grid-template-columns: 1fr;
+  }
 }

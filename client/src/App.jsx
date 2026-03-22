@@ -30,6 +30,14 @@ const ProtectedRoute = ({ children }) => {
 function App() {
   return (
     <div className="App">
+      <div className="app-side-chains" aria-hidden="true">
+        <div className="side-chain side-chain-left">
+          <span className="side-chain-track" />
+        </div>
+        <div className="side-chain side-chain-right">
+          <span className="side-chain-track" />
+        </div>
+      </div>
       <Header />
       <main className="main-content">
         <Routes>

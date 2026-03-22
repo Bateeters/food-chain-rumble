@@ -4,68 +4,47 @@
 }
 
 .leaderboard-header h1 {
-  color: #00d4ff;
+  color: var(--fcr-text);
   font-size: 3rem;
   margin-bottom: 0.5rem;
-  text-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
 .leaderboard-header p {
-  color: #888;
-  font-size: 1.2rem;
+  color: var(--fcr-text-muted);
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
 }
 
-/* Filters */
-.leaderboard-filters {
-  background-color: #16213e;
-  border-radius: 12px;
+.leaderboard-filters,
+.leaderboard-content {
+  background:
+    linear-gradient(180deg, rgba(214, 176, 110, 0.05), transparent 22%),
+    var(--fcr-surface);
+  border-radius: 14px;
   padding: 1.5rem;
-  border: 2px solid #2d3561;
+  border: 1px solid var(--fcr-border);
+  box-shadow: var(--fcr-shadow);
 }
 
 .filter-label {
-  color: #888;
-  font-weight: 600;
-  font-size: 0.9rem;
+  color: var(--fcr-text-muted);
+  font-weight: 700;
+  font-size: 0.78rem;
   text-transform: uppercase;
   white-space: nowrap;
+  letter-spacing: 0.12em;
 }
 
 .leaderboard-search {
-  background-color: #0f0f1e !important;
-  color: #fff !important;
-  border: 2px solid #2d3561 !important;
   min-width: 180px;
   max-width: 240px;
 }
 
-.leaderboard-search:focus {
-  border-color: #00d4ff !important;
-  box-shadow: none !important;
-}
-
-.leaderboard-search::placeholder {
-  color: #555;
-}
-
 .character-select {
-  background-color: #0f0f1e;
-  color: #fff;
-  border: 2px solid #2d3561;
   min-width: 200px;
-}
-
-.character-select:focus {
-  border-color: #00d4ff;
-  box-shadow: none;
-}
-
-/* Leaderboard Content */
-.leaderboard-content {
-  background-color: #16213e;
-  border-radius: 12px;
-  padding: 2rem;
-  border: 2px solid #2d3561;
 }
 
 .leaderboard-table-wrapper {
@@ -75,60 +54,57 @@
 .leaderboard-table {
   width: 100%;
   border-collapse: collapse;
-  color: #ccc;
+  color: var(--fcr-text-muted);
   --bs-table-bg: transparent;
 }
 
 .leaderboard-table thead {
-  background-color: rgba(0, 0, 0, 0.3);
+  background-color: rgba(5, 12, 23, 0.45);
 }
 
 .leaderboard-table th {
   padding: 1rem;
   text-align: left;
-  color: #888;
-  font-weight: 600;
+  color: var(--fcr-text-muted);
+  font-weight: 700;
   text-transform: uppercase;
-  font-size: 0.85rem;
-  letter-spacing: 0.5px;
-  border-bottom: 2px solid #2d3561;
+  font-size: 0.76rem;
+  letter-spacing: 0.12em;
+  border-bottom: 1px solid var(--fcr-border);
 }
 
 .leaderboard-table tbody tr {
-  border-bottom: 1px solid #2d3561;
-  transition: background-color 0.3s;
+  border-bottom: 1px solid rgba(246, 234, 215, 0.05);
+  transition: background-color 0.2s ease;
 }
 
 .leaderboard-table tbody tr:hover {
-  background-color: rgba(0, 212, 255, 0.05);
+  background-color: rgba(214, 176, 110, 0.05);
 }
 
 .leaderboard-table tbody tr.top-three {
-  background-color: rgba(255, 215, 0, 0.05);
+  background-color: rgba(214, 176, 110, 0.08);
 }
 
 .leaderboard-table td {
   padding: 1rem;
 }
 
-/* Column Widths */
 .rank-col { width: 10%; }
 .player-col { width: 55%; }
 .character-col { width: 20%; }
 .mmr-col { width: 15%; text-align: start; }
 
-/* Rank Badge */
 .rank-badge {
   display: inline-block;
   padding: 0.4rem 0.8rem;
-  border-radius: 20px;
-  font-weight: 700;
-  color: #0f0f1e;
+  border-radius: 999px;
+  font-weight: 800;
+  color: #24160a;
   min-width: 60px;
   text-align: center;
 }
 
-/* Player */
 .player-info {
   display: flex;
   align-items: center;
@@ -136,42 +112,40 @@
 }
 
 .player-name {
-  font-weight: 600;
-  color: #fff;
+  font-weight: 700;
+  color: var(--fcr-text);
   font-size: 1rem;
 }
 
 .mmr-value {
-  color: #00d4ff;
-  font-weight: 700;
-  font-size: 1.1rem;
+  color: var(--fcr-accent-strong);
+  font-weight: 800;
+  font-size: 1.05rem;
 }
 
-/* Empty State */
 .empty-state {
   text-align: center;
   padding: 4rem 2rem;
 }
 
 .empty-state h3 {
-  color: #00d4ff;
+  color: var(--fcr-text);
   font-size: 1.5rem;
   margin-bottom: 0.5rem;
+  text-transform: uppercase;
 }
 
-.empty-state p {
-  color: #888;
-}
-
-/* Footer */
+.empty-state p,
 .leaderboard-footer {
-  margin-top: 2rem;
+  color: var(--fcr-text-muted);
+}
+
+.leaderboard-footer {
+  margin-top: 1.5rem;
   text-align: center;
-  color: #888;
   font-size: 0.9rem;
 }
 
-/* Top Characters */
 .top-characters {
   display: flex;
   gap: 0.5rem;
@@ -198,7 +172,7 @@
 }
 
 .character-mini:hover .character-mini-icon {
-  transform: scale(1.1);
+  transform: scale(1.08);
 }
 
 @media (max-width: 768px) {

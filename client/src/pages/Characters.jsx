@@ -3,7 +3,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { fetchCharacters } from '../store/slices/characterSlice';
 import CharacterCard from '../components/character/CharacterCard';
-import { Container, Row, Col, Spinner, Alert } from 'react-bootstrap';
+import { Container, Row, Col, Spinner, Alert, Button } from 'react-bootstrap';
+import './Characters.css';
 
 const Characters = () => {
   const dispatch = useDispatch();
@@ -35,27 +36,50 @@ const Characters = () => {
   }
 
   return (
-    <Container className="py-5">
-      <div className="text-center mb-5">
-        <h1 className="display-5 fw-bold">Choose Your Fighter</h1>
-        <p className="text-secondary">Select a character to deep dive into the roster.</p>
-      </div>
-
-      {characters.length === 0 ? (
-        <p className="text-center text-secondary">No characters found</p>
-      ) : (
-        <Row xs={1} sm={2} lg={3} xl={4} className="g-4">
-          {characters.map((character) => (
-            <Col key={character._id}>
-              <CharacterCard
-                character={character}
-                onClick={() => handleCharacterClick(character._id)}
-              />
+    <div className="characters-page">
+      <section className="characters-hero">
+        <Container>
+          <Row className="align-items-center g-4">
+            <Col lg={7}>
+              <p className="characters-kicker">Roster</p>
+              <h1 className="characters-title">Choose your fighter.</h1>
+              <p className="characters-copy">
+                A lineup of predators, bruisers, tricksters, and support specialists built for aggressive reads
+                and matchup variety. Pick one and drill into abilities, role, and lore.
+              </p>
+              <div className="characters-hero-actions">
+                <Button variant="primary" onClick={() => navigate('/')}>Back Home</Button>
+              </div>
             </Col>
-          ))}
-        </Row>
-      )}
-    </Container>
+            <Col lg={5}>
+              <div className="characters-hero-panel">
+                <span>Roster Art Placeholder</span>
+                <small>Ideal for a collage, lineup render, or class showcase image</small>
+              </div>
+            </Col>
+          </Row>
+        </Container>
+      </section>
+
+      <section className="characters-grid-section">
+        <Container>
+          {characters.length === 0 ? (
+            <p className="text-center text-secondary">No characters found</p>
+          ) : (
+            <Row xs={1} sm={2} lg={3} xl={4} className="g-4">
+              {characters.map((character) => (
+                <Col key={character._id}>
+                  <CharacterCard
+                    character={character}
+                    onClick={() => handleCharacterClick(character._id)}
+                  />
+                </Col>
+              ))}
+            </Row>
+          )}
+        </Container>
+      </section>
+    </div>
   );
 };
 
