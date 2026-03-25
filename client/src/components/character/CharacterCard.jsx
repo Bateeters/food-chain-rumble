@@ -1,17 +1,36 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import { Card, Badge } from 'react-bootstrap';
 import CharacterIcon from './CharacterIcon';
 import './CharacterCard.css';
 
 const CharacterCard = ({ character, onClick }) => {
+  const [bannerMissing, setBannerMissing] = useState(false);
+
   const getDifficultyVariant = (difficulty) => {
     const variants = { 1: 'success', 2: 'warning', 3: 'danger' };
     return variants[difficulty] || 'secondary';
   };
 
+  const bannerPath = useMemo(() => {
+    const slug = character.name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '');
+
+    return `/images/${slug}-banner.png`;
+  }, [character.name]);
+
   return (
     <Card className="character-card h-100" onClick={onClick}>
-      <div className="character-card-banner" />
+      <div className="character-card-banner">
+        {!bannerMissing && (
+          <img
+            src={bannerPath}
+            alt={`${character.name} banner`}
+            onError={() => setBannerMissing(true)}
+          />
+        )}
+      </div>
       <div className="character-card-header position-relative p-4">
         <Badge className="character-role-badge text-uppercase">
           {character.role}

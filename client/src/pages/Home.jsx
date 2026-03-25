@@ -57,7 +57,7 @@ const Home = () => {
       <section className="home-feature-section">
         <Container>
           <Row className="g-4 align-items-center">
-            <Col lg={9} className='m-auto pb-5'>
+            <Col lg={9} className='m-auto mt-5 py-5'>
               <p className="section-kicker">The Hunt</p>
               <h2 className="section-title">Fast reads, hard counters, and ranked pressure.</h2>
               <p className="section-copy">
@@ -75,6 +75,7 @@ const Home = () => {
                       Every animal enters the arena with a clear silhouette, a unique movement rhythm, and a combat
                       identity that changes how neutral, pressure, and recovery play out.
                     </p>
+                    <br />
                     <p>
                       From fast ambushers to heavy bruisers, the roster is built so matchups feel different and team
                       compositions create real predator-prey tension.
@@ -82,13 +83,17 @@ const Home = () => {
                   </div>
                 </Col>
                 <Col lg={9} md={12} className='m-auto py-5'>
-                  <div className="home-feature-card">
+                  <div
+                    className="home-feature-card home-card-img-2"
+                    style={{ '--home-card-banner': `url(${process.env.PUBLIC_URL}/images/porcupine-banner.png)` }}
+                  >
                     <span className="feature-label">02</span>
                     <h3>Ranked Modes</h3>
                     <p>
                       Queue into 1v1, 2v2, and 3v3 ladders designed for players who want fast matchmaking, visible
                       progression, and meaningful stakes every time they hit ready.
                     </p>
+                    <br/>
                     <p>
                       Seasonal climbs, match history, and clear rank tracking make it easy to measure improvement and
                       identify where your squad performs best under pressure.

@@ -25,7 +25,7 @@
   --fcr-border: rgba(242, 184, 75, 0.22);
   --fcr-border-strong: rgba(183, 217, 243, 0.5);
   --fcr-text: var(--fcr-accent-cream);
-  --fcr-text-muted: rgba(248, 232, 212, 0.7);
+  --fcr-text-muted: rgb(248, 232, 212);
   --fcr-accent: var(--fcr-tertiary-600);
   --fcr-accent-strong: var(--fcr-accent-gold);
   --fcr-accent-dark: var(--fcr-primary-800);
