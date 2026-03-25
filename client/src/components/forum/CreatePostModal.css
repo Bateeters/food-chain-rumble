@@ -1,1 +1,11 @@
-/* Replaced by Bootstrap — file kept to avoid import errors if referenced elsewhere */
+.forum-modal .modal-title {
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.forum-modal .modal-body label {
+  color: var(--fcr-accent-cream);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.76rem;
+}

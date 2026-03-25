@@ -1,1 +1,50 @@
-/* Replaced by Bootstrap — file kept to avoid import errors if referenced elsewhere */
+.comment-section-shell {
+  padding: 1.75rem;
+  border: 1px solid rgba(248, 232, 212, 0.08);
+  border-radius: 1.5rem;
+  background:
+    linear-gradient(180deg, rgba(185, 122, 77, 0.1), transparent 18%),
+    rgba(37, 19, 29, 0.88);
+  box-shadow: var(--fcr-shadow);
+}
+
+.comment-section-header {
+  margin-bottom: 1rem;
+}
+
+.comment-section-kicker {
+  color: var(--fcr-accent-gold);
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  font-size: 0.72rem;
+}
+
+.comment-section-title {
+  font-size: clamp(1.5rem, 3vw, 2.1rem);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.comment-composer {
+  padding: 1rem;
+  border: 1px solid rgba(248, 232, 212, 0.08);
+  border-radius: 1.2rem;
+  background: rgba(18, 10, 20, 0.42);
+}
+
+.comment-composer-input {
+  min-height: 8rem;
+}
+
+.comment-login-link {
+  cursor: pointer;
+  color: var(--fcr-highlight);
+  text-decoration: underline;
+  text-underline-offset: 0.2rem;
+}
+
+@media (max-width: 767.98px) {
+  .comment-section-shell {
+    padding: 1.2rem;
+  }
+}

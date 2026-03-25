@@ -20,13 +20,19 @@ const Comment = ({ comment, postId, isReply = false }) => {
   const [editText, setEditText] = useState(comment.content);
 
   const handleVote = (voteType) => {
-    if (!user) { navigate('/login'); return; }
+    if (!user) {
+      navigate('/login');
+      return;
+    }
     dispatch(voteOnComment({ commentId: comment._id, voteType }));
   };
 
   const handleReplySubmit = async (e) => {
     e.preventDefault();
-    if (!user) { navigate('/login'); return; }
+    if (!user) {
+      navigate('/login');
+      return;
+    }
     if (!replyText.trim()) return;
     setIsSubmitting(true);
     await dispatch(createComment({ postId, commentData: { content: replyText, parentCommentId: comment._id } }));
@@ -65,30 +71,30 @@ const Comment = ({ comment, postId, isReply = false }) => {
     if (diffInHours < 24) return `${diffInHours}h ago`;
     if (diffInHours < 48) return 'Yesterday';
     return d.toLocaleDateString('en-US', {
-      month: 'short', day: 'numeric',
+      month: 'short',
+      day: 'numeric',
       year: d.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
     });
   };
 
-  // optional chaining prevents crash when author is null
   const isAuthor = user && comment.author?._id === user._id;
   const isModerator = user && (user.role === 'admin' || user.role === 'moderator');
 
   return (
     <div className="comment-separator pt-3">
-      <div className={`d-flex gap-3 ${isReply ? 'ms-4 ps-3 border-start' : ''}`}>
+      <div className={`comment-card d-flex gap-3 ${isReply ? 'comment-reply ms-4 ps-3' : ''}`}>
         <div className="flex-shrink-0">
           <VoteButtons voteScore={comment.voteScore || 0} userVote={comment.userVote} onVote={handleVote} />
         </div>
 
         <div className="flex-grow-1 min-width-0">
           <div className="d-flex align-items-center gap-2 mb-2 flex-wrap">
-            <div className='d-none d-md-block'>
+            <div className="d-none d-md-block">
               <UserAvatar user={comment.author} size="small" showUsername={true} />
             </div>
-            <span className="text-secondary">•</span>
+            <span className="comment-meta-dot" />
             <span className="text-secondary small">{formatDate(comment.createdAt)}</span>
-            {comment.editedAt && <span className="text-secondary small fst-italic">• Edited</span>}
+            {comment.editedAt && <span className="text-secondary small fst-italic">Edited</span>}
           </div>
 
           {isEditing ? (
@@ -102,49 +108,47 @@ const Comment = ({ comment, postId, isReply = false }) => {
                 autoFocus
                 className="mb-1"
               />
-              <div className="d-flex justify-content-between align-items-center">
+              <div className="d-flex justify-content-between align-items-center flex-wrap gap-2">
                 <span className="text-secondary small">{editText.length} / 5000</span>
                 <div className="d-flex gap-2">
-                  <Button variant="outline-secondary" size="sm" type="button"
-                    onClick={() => { setEditText(comment.content); setIsEditing(false); }}>
+                  <Button
+                    variant="outline-secondary"
+                    size="sm"
+                    type="button"
+                    onClick={() => { setEditText(comment.content); setIsEditing(false); }}
+                  >
                     Cancel
                   </Button>
-                  <Button variant="primary" size="sm" type="submit"
-                    disabled={!editText.trim() || isSubmitting}>
+                  <Button variant="primary" size="sm" type="submit" disabled={!editText.trim() || isSubmitting}>
                     {isSubmitting ? 'Saving...' : 'Save'}
                   </Button>
                 </div>
               </div>
             </Form>
           ) : (
-            <p className="mb-2 text-start comment-text">
-              {comment.content}
-            </p>
+            <p className="mb-2 text-start comment-text">{comment.content}</p>
           )}
 
-          <div className="d-flex gap-2 mb-2">
+          <div className="d-flex gap-3 mb-2 flex-wrap">
             {!isReply && user && (
-              <Button variant="link" size="sm" className="p-0 text-secondary"
-                onClick={() => setShowReplyForm(!showReplyForm)}>
-                💬 Reply
+              <Button variant="link" size="sm" className="comment-action p-0" onClick={() => setShowReplyForm(!showReplyForm)}>
+                Reply
               </Button>
             )}
             {isAuthor && !isEditing && (
-              <Button variant="link" size="sm" className="p-0 text-secondary"
-                onClick={() => setIsEditing(true)}>
-                ✏️ Edit
+              <Button variant="link" size="sm" className="comment-action p-0" onClick={() => setIsEditing(true)}>
+                Edit
               </Button>
             )}
             {(isAuthor || isModerator) && !isEditing && (
-              <Button variant="link" size="sm" className="p-0 text-danger"
-                onClick={() => setShowDeleteConfirm(true)}>
-                🗑️ Delete
+              <Button variant="link" size="sm" className="comment-action comment-action-danger p-0" onClick={() => setShowDeleteConfirm(true)}>
+                Delete
               </Button>
             )}
           </div>
 
           {showReplyForm && (
-            <Form onSubmit={handleReplySubmit} className="mb-3">
+            <Form onSubmit={handleReplySubmit} className="comment-reply-form mb-3">
               <Form.Control
                 as="textarea"
                 rows={3}
@@ -155,15 +159,18 @@ const Comment = ({ comment, postId, isReply = false }) => {
                 autoFocus
                 className="mb-1"
               />
-              <div className="d-flex justify-content-between align-items-center">
+              <div className="d-flex justify-content-between align-items-center flex-wrap gap-2">
                 <span className="text-secondary small">{replyText.length} / 5000</span>
                 <div className="d-flex gap-2">
-                  <Button variant="outline-secondary" size="sm" type="button"
-                    onClick={() => { setShowReplyForm(false); setReplyText(''); }}>
+                  <Button
+                    variant="outline-secondary"
+                    size="sm"
+                    type="button"
+                    onClick={() => { setShowReplyForm(false); setReplyText(''); }}
+                  >
                     Cancel
                   </Button>
-                  <Button variant="primary" size="sm" type="submit"
-                    disabled={!replyText.trim() || isSubmitting}>
+                  <Button variant="primary" size="sm" type="submit" disabled={!replyText.trim() || isSubmitting}>
                     {isSubmitting ? 'Posting...' : 'Reply'}
                   </Button>
                 </div>
@@ -180,7 +187,7 @@ const Comment = ({ comment, postId, isReply = false }) => {
           )}
         </div>
 
-        <Modal show={showDeleteConfirm} onHide={() => setShowDeleteConfirm(false)} centered size="sm">
+        <Modal show={showDeleteConfirm} onHide={() => setShowDeleteConfirm(false)} centered size="sm" className="forum-modal">
           <Modal.Header closeButton>
             <Modal.Title>Delete Comment?</Modal.Title>
           </Modal.Header>

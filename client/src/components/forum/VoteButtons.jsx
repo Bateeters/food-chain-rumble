@@ -13,7 +13,9 @@ const VoteButtons = ({ voteScore, userVote, onVote }) => {
         className={`vote-btn upvote-btn ${userVote === 'upvote' ? 'active' : ''}`}
         onClick={handleUpvote}
         title="Upvote"
-      >▲</Button>
+      >
+        Up
+      </Button>
 
       <span className={`vote-score ${voteScore > 0 ? 'positive' : voteScore < 0 ? 'negative' : ''}`}>
         {voteScore}
@@ -24,7 +26,9 @@ const VoteButtons = ({ voteScore, userVote, onVote }) => {
         className={`vote-btn downvote-btn ${userVote === 'downvote' ? 'active' : ''}`}
         onClick={handleDownvote}
         title="Downvote"
-      >▼</Button>
+      >
+        Down
+      </Button>
     </div>
   );
 };

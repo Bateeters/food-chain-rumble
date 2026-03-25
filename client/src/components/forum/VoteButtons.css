@@ -2,47 +2,55 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.5rem;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  padding: 0.75rem 0.5rem;
+  gap: 0.4rem;
+  padding: 0.7rem 0.45rem;
+  border: 1px solid rgba(248, 232, 212, 0.08);
+  border-radius: 1rem;
+  background: rgba(18, 10, 20, 0.48);
+  min-width: 4.5rem;
 }
 
 .vote-btn {
+  min-width: 3rem;
+  padding: 0.35rem 0.4rem !important;
+  border-radius: 999px !important;
   background: transparent !important;
-  border: none !important;
-  color: #666 !important;
-  font-size: 1.25rem;
-  width: 36px;
-  height: 36px;
-  display: flex !important;
-  align-items: center;
-  justify-content: center;
-  border-radius: 6px !important;
-  padding: 0 !important;
+  color: var(--fcr-text-muted) !important;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.68rem !important;
   text-decoration: none !important;
-  box-shadow: none !important;
-  transition: all 0.3s ease !important;
+  border: 1px solid transparent !important;
 }
 
 .vote-btn:hover {
-  background: rgba(255, 255, 255, 0.1) !important;
+  background: rgba(248, 232, 212, 0.06) !important;
 }
 
-.upvote-btn:hover { color: #00d4ff !important; }
-.upvote-btn.active { color: #00d4ff !important; background: rgba(0, 212, 255, 0.2) !important; }
+.upvote-btn.active {
+  color: var(--fcr-highlight) !important;
+  border-color: rgba(183, 217, 243, 0.35) !important;
+  background: rgba(183, 217, 243, 0.08) !important;
+}
 
-.downvote-btn:hover { color: #ff6b9d !important; }
-.downvote-btn.active { color: #ff6b9d !important; background: rgba(255, 107, 157, 0.2) !important; }
+.downvote-btn.active {
+  color: var(--fcr-danger) !important;
+  border-color: rgba(216, 108, 125, 0.35) !important;
+  background: rgba(216, 108, 125, 0.08) !important;
+}
 
 .vote-score {
-  font-size: 1.1rem;
-  font-weight: bold;
-  color: #aaa;
-  min-width: 36px;
+  min-width: 2.5rem;
   text-align: center;
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--fcr-text);
 }
 
-.vote-score.positive { color: #00d4ff; }
-.vote-score.negative { color: #ff6b9d; }
+.vote-score.positive {
+  color: var(--fcr-highlight);
+}
+
+.vote-score.negative {
+  color: var(--fcr-danger);
+}

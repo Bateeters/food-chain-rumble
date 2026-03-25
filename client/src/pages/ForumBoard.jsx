@@ -35,7 +35,10 @@ const ForumBoard = () => {
   const handlePostClick = (postId) => navigate(`/forum/posts/${postId}`);
 
   const handleCreatePost = () => {
-    if (!user) { navigate('/login'); return; }
+    if (!user) {
+      navigate('/login');
+      return;
+    }
     setShowCreateModal(true);
   };
 
@@ -82,107 +85,115 @@ const ForumBoard = () => {
   }
 
   return (
-    <Container className="py-4">
-      <Row className="justify-content-center">
-      <Col lg={10}>
+    <div className="forum-board-shell page-shell">
+      <Container className="py-4 py-lg-5">
+        <Row className="justify-content-center">
+          <Col lg={11} xl={10}>
+            <nav className="forum-breadcrumb mb-3 text-start">
+              <span className="breadcrumb-link" onClick={() => navigate('/forum')}>Forum</span>
+              <span className="breadcrumb-divider">/</span>
+              <span>{currentBoard.name}</span>
+            </nav>
 
-      {/* Breadcrumb */}
-      <nav className="mb-3 text-secondary small text-start">
-        <span className="breadcrumb-link" onClick={() => navigate('/forum')}>Forum</span>
-        <span className="mx-2">›</span>
-        <span>{currentBoard.name}</span>
-      </nav>
+            <div
+              className="board-header mb-4"
+              style={{ '--board-accent': currentBoard.color || 'var(--fcr-highlight)' }}
+            >
+              <div className="board-header-accent" />
+              <Row className="align-items-center g-4">
+                <Col xs={12} md={8} className="text-start">
+                  <p className="board-header-kicker mb-2">Discussion Board</p>
+                  <h1 className="board-header-title mb-2">{currentBoard.name}</h1>
+                  <p className="board-header-description mb-0">{currentBoard.description}</p>
+                </Col>
+                <Col xs={12} md={4}>
+                  <div className="board-header-actions">
+                    <div className="board-stat-panel">
+                      <span className="board-stat-value">{postsPagination.total || 0}</span>
+                      <span className="board-stat-label">Active threads</span>
+                    </div>
+                    <Button variant="primary" className="forum-create-button" onClick={handleCreatePost}>
+                      Start New Post
+                    </Button>
+                  </div>
+                </Col>
+              </Row>
+            </div>
 
-      {/* Board Header */}
-      <div className="board-header mb-4 p-3 rounded" style={{ borderLeft: `4px solid ${currentBoard.color || '#00d4ff'}` }}>
-        <Row className="align-items-center g-0">
-          <Col xs={12} md={7} className="text-start">
-            <h2 className="mb-1">{currentBoard.name}</h2>
-            <p className="text-secondary mb-0 small">{currentBoard.description}</p>
-          </Col>
-          <Col xs="auto" className="ms-auto pt-md-0 pt-3">
-            <Button variant="primary" className='py-1 px-3' onClick={handleCreatePost}>+ New Post</Button>
+            <div className="board-toolbar mb-3">
+              <ButtonGroup size="sm" className="forum-sort-group">
+                {['latest', 'popular', 'oldest'].map((opt) => (
+                  <Button
+                    key={opt}
+                    variant="outline-primary"
+                    className={sortBy === opt ? 'active' : ''}
+                    onClick={() => setSortBy(opt)}
+                  >
+                    {opt.charAt(0).toUpperCase() + opt.slice(1)}
+                  </Button>
+                ))}
+              </ButtonGroup>
+              <span className="board-toolbar-count">{postsPagination.total || 0} posts</span>
+            </div>
+
+            {posts && posts.length > 0 ? (
+              <div className="d-flex flex-column gap-3">
+                {posts.map((post) => (
+                  <div
+                    key={post._id}
+                    className={`post-row ${post.isPinned ? 'pinned-post' : ''}`}
+                    onClick={() => handlePostClick(post._id)}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    <div className="post-row-accent" />
+                    <div className="post-row-avatar d-none d-md-block">
+                      <UserAvatar user={post.author} size="medium" />
+                    </div>
+
+                    <div className="post-row-main">
+                      <div className="post-row-tags">
+                        {post.isPinned && <Badge bg="warning" text="dark">Pinned</Badge>}
+                        {post.isLocked && <Badge bg="danger">Locked</Badge>}
+                      </div>
+                      <h2 className="post-row-title">{post.title}</h2>
+                      <div className="post-row-meta">
+                        <span>{post.author?.username || 'Unknown user'}</span>
+                        <span className="post-row-dot" />
+                        <span>{formatDate(post.createdAt)}</span>
+                      </div>
+                    </div>
+
+                    <div className="post-row-stats">
+                      <span>Comments {post.stats?.commentCount || 0}</span>
+                      <span>Views {post.stats?.viewCount || 0}</span>
+                      <span>Score {post.voteScore || 0}</span>
+                    </div>
+
+                    <span className="post-row-cta">View thread</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="forum-empty-state text-center">
+                <h4>No posts yet</h4>
+                <p>Be the first to open a discussion in this board.</p>
+                <Button variant="primary" onClick={handleCreatePost}>Create First Post</Button>
+              </div>
+            )}
+
+            {postsPagination.pages > 1 && (
+              <p className="text-center text-secondary mt-4 small">
+                Page {postsPagination.page} of {postsPagination.pages}
+              </p>
+            )}
+
+            {showCreateModal && (
+              <CreatePostModal boardId={currentBoard._id} onClose={() => setShowCreateModal(false)} />
+            )}
           </Col>
         </Row>
-      </div>
-
-      {/* Sort Controls */}
-      <div className="d-flex justify-content-between align-items-center mb-3">
-        <ButtonGroup size="sm">
-          {['latest', 'popular', 'oldest'].map((opt) => (
-            <Button
-              key={opt}
-              variant="outline-primary"
-              className={`py-1 px-3 ${sortBy === opt ? 'active' : ''}`}
-              onClick={() => setSortBy(opt)}
-            >
-              {opt.charAt(0).toUpperCase() + opt.slice(1)}
-            </Button>
-          ))}
-        </ButtonGroup>
-        <span className="text-secondary small">{postsPagination.total || 0} posts</span>
-      </div>
-
-      {/* Posts List */}
-      {posts && posts.length > 0 ? (
-        <div className="d-flex flex-column gap-2">
-          {posts.map((post) => (
-            <div
-              key={post._id}
-              className={`post-row d-flex flex-wrap align-items-center gap-3 p-3 rounded ${post.isPinned ? 'pinned-post' : ''}`}
-              onClick={() => handlePostClick(post._id)}
-              style={{ cursor: 'pointer' }}
-            >
-              <div className='d-none d-md-block'>
-                <UserAvatar user={post.author} size="medium"/>
-              </div>
-
-              <div className="flex-grow-1 min-width-0 col-12 col-md-7">
-                <div className="d-flex align-items-center gap-2 flex-wrap mb-1">
-                  {post.isPinned && <Badge bg="warning" text="dark">📌 Pinned</Badge>}
-                  <span className="fw-semibold">
-                    {post.title}
-                    {post.isLocked && <span className="ms-1">🔒</span>}
-                  </span>
-                </div>
-                <div className="text-secondary small text-start">
-                  <span>{post.author?.username}</span>
-                  <span className="mx-1">•</span>
-                  <span>{formatDate(post.createdAt)}</span>
-                </div>
-              </div>
-
-              <div className="d-flex gap-3 text-secondary small flex-shrink-0">
-                <span>💬 {post.stats?.commentCount || 0}</span>
-                <span>👁️ {post.stats?.viewCount || 0}</span>
-                <span>👍 {post.voteScore || 0}</span>
-              </div>
-
-              <span className="text-secondary">→</span>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div className="text-center text-secondary py-5">
-          <h4>No posts yet</h4>
-          <p>Be the first to start a discussion!</p>
-          <Button variant="primary" onClick={handleCreatePost}>Create First Post</Button>
-        </div>
-      )}
-
-      {postsPagination.pages > 1 && (
-        <p className="text-center text-secondary mt-4 small">
-          Page {postsPagination.page} of {postsPagination.pages}
-        </p>
-      )}
-
-      {showCreateModal && (
-        <CreatePostModal boardId={currentBoard._id} onClose={() => setShowCreateModal(false)} />
-      )}
-
-      </Col>
-      </Row>
-    </Container>
+      </Container>
+    </div>
   );
 };
 

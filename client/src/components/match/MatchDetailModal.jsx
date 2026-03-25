@@ -30,7 +30,6 @@ const MatchDetailModal = ({ match, onClose }) => {
 
         <div className={`match-header ${didUserWin ? 'team1-won' : 'team2-won'}`}>
           <div className="match-result">
-            <span className="result-icon">{didUserWin ? 'WIN' : 'LOSS'}</span>
             <span className="result-text">{didUserWin ? 'Victory' : 'Defeat'}</span>
           </div>
           <div className="match-mode">{match.gameMode.replace('_', ' ').toUpperCase()}</div>

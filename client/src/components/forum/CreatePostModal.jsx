@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { Modal, Form, Button, Alert } from 'react-bootstrap';
 import { createPost, clearCreateSuccess } from '../../store/slices/forumSlice';
+import './CreatePostModal.css';
 
 const CreatePostModal = ({ boardId, onClose }) => {
   const dispatch = useDispatch();
@@ -16,7 +17,10 @@ const CreatePostModal = ({ boardId, onClose }) => {
     e.preventDefault();
     if (!title.trim() || !content.trim()) return;
 
-    const result = await dispatch(createPost({ boardId, postData: { title: title.trim(), content: content.trim() } }));
+    const result = await dispatch(createPost({
+      boardId,
+      postData: { title: title.trim(), content: content.trim() }
+    }));
 
     if (result.type === 'forum/createPost/fulfilled') {
       dispatch(clearCreateSuccess());
@@ -25,14 +29,14 @@ const CreatePostModal = ({ boardId, onClose }) => {
   };
 
   return (
-    <Modal show onHide={onClose} centered size="lg">
+    <Modal show onHide={onClose} centered size="lg" className="forum-modal">
       <Modal.Header closeButton>
         <Modal.Title>Create New Post</Modal.Title>
       </Modal.Header>
 
       <Form onSubmit={handleSubmit}>
         <Modal.Body>
-          {error && <Alert variant="danger">{error}</Alert>}
+          {error && <Alert variant="danger" className="forum-inline-alert">{error}</Alert>}
 
           <Form.Group className="mb-3">
             <Form.Label>Title</Form.Label>
@@ -62,8 +66,8 @@ const CreatePostModal = ({ boardId, onClose }) => {
         </Modal.Body>
 
         <Modal.Footer>
-          <Button variant="danger" onClick={onClose} disabled={isLoading} className='px-3 py-1'>Cancel</Button>
-          <Button variant="primary" type="submit" disabled={!title.trim() || !content.trim() || isLoading} className='px-3 py-1'>
+          <Button variant="danger" onClick={onClose} disabled={isLoading} className="px-3 py-2">Cancel</Button>
+          <Button variant="primary" type="submit" disabled={!title.trim() || !content.trim() || isLoading} className="px-3 py-2">
             {isLoading ? 'Creating...' : 'Create Post'}
           </Button>
         </Modal.Footer>

@@ -33,55 +33,68 @@ const Forum = () => {
   }
 
   return (
-    <Container className="py-5">
-      <Row className="justify-content-center">
-        <Col lg={8}>
+    <div className="forum-shell page-shell">
+      <Container className="py-5">
+        <Row className="justify-content-center">
+          <Col lg={10} xl={9}>
+            <section className="forum-hero text-center mb-5">
+              <p className="forum-kicker">Community Intel</p>
+              <h1 className="forum-title">Food Chain Forum</h1>
+              <p className="forum-subtitle">
+                Strategy breakdowns, matchup talk, roster theory, and community discussion all live here.
+              </p>
+              <div className="forum-hero-meta justify-content-center">
+                <span className="forum-meta-pill">{boards?.length || 0} boards</span>
+                <span className="forum-meta-pill">Competitive discussion</span>
+                <span className="forum-meta-pill">Build sharing</span>
+              </div>
+            </section>
 
-          <div className="text-center mb-5">
-            <h1 className="fw-bold">Community Forum</h1>
-            <p className="text-secondary">Discuss strategies, share builds, and connect with the community</p>
-          </div>
-
-          {boards && boards.length > 0 ? (
-            <div className="d-flex flex-column gap-3">
-              {boards.map((board) => (
-                <div
-                  key={board._id}
-                  className="board-card d-flex align-items-center gap-3 p-3 rounded"
-                  style={{ borderLeft: `4px solid ${board.color || '#00d4ff'}`, cursor: 'pointer' }}
-                  onClick={() => navigate(`/forum/${board.slug}`)}
-                >
-                  <div className="board-icon fs-2">
-                    {board.icon ? <img src={board.icon} alt={board.name} width={40} /> : '💬'}
-                  </div>
-
-                  <div className="text-start flex-grow-1 min-width-0">
-                    <h5 className="mb-1">{board.name}</h5>
-                    <p className="text-secondary small mb-1">{board.description}</p>
-                    <div className="d-flex gap-3 text-secondary small flex-wrap">
-                      <span>📝 {board.postCount || 0} posts</span>
-                      {board.recentPost && (
-                        <span>
-                          Last: <strong>{board.recentPost.title}</strong>
-                        </span>
+            {boards && boards.length > 0 ? (
+              <div className="d-flex flex-column gap-4">
+                {boards.map((board) => (
+                  <div
+                    key={board._id}
+                    className="board-card"
+                    style={{ '--board-accent': board.color || 'var(--fcr-highlight)', cursor: 'pointer' }}
+                    onClick={() => navigate(`/forum/${board.slug}`)}
+                  >
+                    <div className="board-card-accent" />
+                    <div className="board-icon">
+                      {board.icon ? (
+                        <img src={board.icon} alt={board.name} width={40} height={40} />
+                      ) : (
+                        <span className="board-icon-fallback">{board.name.slice(0, 2).toUpperCase()}</span>
                       )}
                     </div>
+
+                    <div className="board-content">
+                      <div className="board-label-row">
+                        <span className="board-chip">Board</span>
+                        <span className="board-post-count">{board.postCount || 0} posts</span>
+                      </div>
+                      <h2 className="board-name">{board.name}</h2>
+                      <p className="board-description">{board.description}</p>
+                      <div className="board-footer">
+                        <span className="board-footnote">
+                          {board.recentPost ? `Latest: ${board.recentPost.title}` : 'No discussions yet'}
+                        </span>
+                        <span className="board-cta">Open board</span>
+                      </div>
+                    </div>
                   </div>
-
-                  <span className="text-secondary flex-shrink-0">→</span>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center text-secondary py-5">
-              <h4>No forum boards yet</h4>
-              <p>Check back soon!</p>
-            </div>
-          )}
-
-        </Col>
-      </Row>
-    </Container>
+                ))}
+              </div>
+            ) : (
+              <div className="forum-empty-state text-center">
+                <h4>No forum boards yet</h4>
+                <p>Check back soon for the first discussion hubs.</p>
+              </div>
+            )}
+          </Col>
+        </Row>
+      </Container>
+    </div>
   );
 };
 

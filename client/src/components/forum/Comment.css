@@ -1,8 +1,46 @@
 .comment-separator {
-  border-top: 1px solid #444444;
+  border-top: 1px solid rgba(248, 232, 212, 0.08);
+}
+
+.comment-card {
+  padding: 1rem 0 0.25rem;
+}
+
+.comment-reply {
+  margin-top: 0.75rem;
+  border-left: 1px solid rgba(248, 232, 212, 0.12);
+}
+
+.comment-meta-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgba(248, 232, 212, 0.45);
 }
 
 .comment-text {
   white-space: pre-wrap;
   word-break: break-word;
+  line-height: 1.75;
+  color: var(--fcr-text);
+}
+
+.comment-action {
+  color: var(--fcr-highlight) !important;
+  text-decoration: none !important;
+}
+
+.comment-action:hover {
+  color: var(--fcr-accent-gold) !important;
+}
+
+.comment-action-danger {
+  color: var(--fcr-danger) !important;
+}
+
+.comment-reply-form {
+  padding: 0.9rem;
+  border: 1px solid rgba(248, 232, 212, 0.08);
+  border-radius: 1rem;
+  background: rgba(18, 10, 20, 0.38);
 }

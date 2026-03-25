@@ -82,7 +82,7 @@ const Dashboard = () => {
                         <div className="rank-icon">{getRankIcon(rank.tier)}</div>
                         <div className="rank-info">
                           <div className="rank-tier" style={{ color: rank.color }}>{rank.tier}</div>
-                          {rank.division && <div className="rank-division" style={{ color: rank.color }}>{rank.division}</div>}
+                          {rank.division && <div className="rank-division" style={{ color: rank.color }}>DIVISION {rank.division}</div>}
                         </div>
                       </div>
                       <div className="p-3">
@@ -99,35 +99,35 @@ const Dashboard = () => {
           </Col>
           <Col xs={12}>
             <div className="stat-card h-100">
-              <Row className="align-items-center justify-content-center gy-2">
-                <Col xl={2} md={4} xs={6}>
+              <Row className="align-items-center justify-content-center gap-5 text-center">
+                <div class="w-auto">
                   <div className="stat-label">Total Matches</div>
                   <div className="stat-value">{stats?.totalMatches || 0}</div>
-                </Col>
-                <Col xl={1} md={4} xs={6}>
+                </div>
+                <div class="w-auto">
                   <div className="stat-label">Win Rate</div>
                   <div className="stat-value">{stats?.winRate || 0}%</div>
-                </Col>
-                <Col xl={2} md={4} sm={6} xs={12} className="stat-value">
+                </div>
+                <div className="stat-value w-auto">
                   {stats?.totalWins || 0}W - {stats?.totalLosses || 0}L
-                </Col>
-                <Col xl={3} md={4} sm={6} xs={12} className="stat-value">
+                </div>
+                <div className="stat-value w-auto">
                   K: {stats?.totalKills || 0} | D: {stats?.totalDeaths || 0} | A: {stats?.totalAssists || 0}
-                </Col>
-                <Col xl={2} md={4} xs={6}>
+                </div>
+                <div className="w-auto">
                   <div className="stat-label">Total Damage Dealt</div>
                   <div className="stat-value">{(stats?.totalDamageDealt || 0).toLocaleString()}</div>
-                </Col>
-                <Col xl={2} md={4} xs={6}>
+                </div>
+                <div className="w-auto">
                   <div className="stat-label">Total Damage Taken</div>
                   <div className="stat-value">{(stats?.totalDamageTaken || 0).toLocaleString()}</div>
-                </Col>
+                </div>
               </Row>
             </div>
           </Col>
         </Row>
 
-        <h2 className="section-title text-center mb-3">Performance by Game Mode</h2>
+        <h2 className="section-title text-center mt-5 mb-3">Performance by Game Mode</h2>
         <Row className="g-3 mb-4">
           {stats?.statsByMode && Object.entries(stats.statsByMode).map(([mode, modeStats]) => (
             <Col key={mode} xs={12} md={4}>
@@ -158,7 +158,7 @@ const Dashboard = () => {
           ))}
         </Row>
 
-        <h2 className="section-title text-center mb-3">Your Top Characters</h2>
+        <h2 className="section-title text-center mt-5 mb-3">Your Top Characters</h2>
         {stats?.topCharacters && stats.topCharacters.length > 0 ? (
           <Row className="g-3 mb-4">
             {stats.topCharacters.map((char, index) => (
@@ -168,7 +168,9 @@ const Dashboard = () => {
                     <div className="character-rank col-1">#{index + 1}</div>
                     <h3 className="mb-0 col-sm-7 col-12 p-3">{char.name}</h3>
                     <div className="character-icon col-2">
-                      <CharacterIcon character={char} />
+                      <div style={{ width: '50px', height: '50px'}}>
+                        <CharacterIcon character={char} />
+                      </div>
                     </div>
                   </div>
                   <Row className="g-2">
@@ -217,7 +219,7 @@ const Dashboard = () => {
           </div>
         )}
 
-        <h2 className="section-title text-center mb-3">Recent Matches</h2>
+        <h2 className="section-title text-center mt-5 mb-3">Recent Matches</h2>
         {recentMatches && recentMatches.length > 0 ? (
           <div className="d-flex flex-column gap-3 mb-4">
             {recentMatches.map((match) => (
@@ -233,7 +235,9 @@ const Dashboard = () => {
 
                 <div className="d-flex align-items-center gap-2 flex-grow-1">
                   <div className="match-char-icon">
-                    <CharacterIcon character={match.character} />
+                    <div style={{ width: '50px', height: '50px'}}>
+                      <CharacterIcon character={match.character} />
+                    </div>
                   </div>
                   <span className="match-char-name">{match.character.name}</span>
                 </div>
