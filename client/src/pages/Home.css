@@ -173,13 +173,13 @@
   z-index: 2;
 }
 
-.home-card-img-2 {
+.home-card-img {
   background:
     linear-gradient(90deg, rgba(37, 19, 29, 0.88) 0%, rgba(37, 19, 29, 0.66) 42%, rgba(37, 19, 29, 0.88) 100%),
     linear-gradient(180deg, rgba(185, 122, 77, 0.18), rgba(37, 19, 29, 0.24) 42%, rgba(37, 19, 29, 0.88) 100%);
 }
 
-.home-card-img-2::before {
+.home-card-img::before {
   content: '';
   position: absolute;
   inset: 0;
@@ -187,13 +187,16 @@
   background-position: 20% 83%;
   background-size: cover;
   background-repeat: no-repeat;
-  transform: scaleX(-1);
   transform-origin: center;
   opacity: 0.37;
   z-index: 0;
 }
 
-.home-card-img-2::after {
+.porcupine-banner::before {
+  transform: scaleX(-1);
+}
+
+.home-card-img::after {
   content: '';
   position: absolute;
   inset: 0;
@@ -203,9 +206,9 @@
   z-index: 1;
 }
 
-.home-card-img-2 .feature-label,
-.home-card-img-2 h3,
-.home-card-img-2 p {
+.home-card-img .feature-label,
+.home-card-img h3,
+.home-card-img p {
   color: var(--fcr-accent-cream);
 }
 

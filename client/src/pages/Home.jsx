@@ -68,7 +68,8 @@ const Home = () => {
             <Col lg={12}>
               <Row className="g-4">
                 <Col lg={9} md={12} className='m-auto py-5'>
-                  <div className="home-feature-card">
+                  <div className="home-feature-card home-card-img" 
+                  style={{ '--home-card-banner': `url(${process.env.PUBLIC_URL}/images/shark-banner.png)` }}>
                     <span className="feature-label">01</span>
                     <h3>Distinct Roster</h3>
                     <p>
@@ -84,7 +85,7 @@ const Home = () => {
                 </Col>
                 <Col lg={9} md={12} className='m-auto py-5'>
                   <div
-                    className="home-feature-card home-card-img-2"
+                    className="home-feature-card home-card-img porcupine-banner"
                     style={{ '--home-card-banner': `url(${process.env.PUBLIC_URL}/images/porcupine-banner.png)` }}
                   >
                     <span className="feature-label">02</span>
