@@ -111,8 +111,23 @@ buildStatsSchema.virtual('avgDamageTaken').get(function() {
         : 0;
 });
 
-// Virtual: Usage rate (calculated relative to total character picks)
-buildStatsSchema.virtual('usageRate');
+// Virtual: Usage rate (calculated relative to total character picks for same character+gameMode).
+// Caller must inject _totalCharacterUses onto the document before serializing,
+// e.g.: build._totalCharacterUses = totalUsesForThatCharacter
+buildStatsSchema.virtual('usageRate').get(function() {
+    if (!this._totalCharacterUses || this._totalCharacterUses === 0) return 0;
+    return parseFloat(
+        ((this.stats.totalUses / this._totalCharacterUses) * 100).toFixed(2)
+    );
+});
+
+// Normalize lesserTalents order so ["A","B"] and ["B","A"] resolve to the same build document
+buildStatsSchema.pre('save', function(next) {
+    if (this.build?.lesserTalents?.length > 1) {
+        this.build.lesserTalents.sort();
+    }
+    next();
+});
 
 buildStatsSchema.set('toJSON', { virtuals: true });
 buildStatsSchema.set('toObject', { virtuals: true });

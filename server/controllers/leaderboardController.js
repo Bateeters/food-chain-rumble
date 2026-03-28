@@ -948,6 +948,16 @@ const getBuildBalanceData = async (req, res) => {
             .sort({ 'stats.totalUses': -1 })
             .limit(parseInt(limit));
 
+        // Pre-compute total uses per character so the usageRate virtual can self-compute
+        const totalUsesByChar = {};
+        buildData.forEach(build => {
+            const charId = build.character._id.toString();
+            totalUsesByChar[charId] = (totalUsesByChar[charId] || 0) + build.stats.totalUses;
+        });
+        buildData.forEach(build => {
+            build._totalCharacterUses = totalUsesByChar[build.character._id.toString()];
+        });
+
         // Group by character
         const byCharacter = {};
 
@@ -958,7 +968,7 @@ const getBuildBalanceData = async (req, res) => {
                 byCharacter[charName] = {
                     character: charName,
                     totalMatches: 0,
-                    topBuild: []
+                    topBuilds: []
                 };
             }
 
@@ -969,26 +979,23 @@ const getBuildBalanceData = async (req, res) => {
                 wins: build.stats.wins,
                 losses: build.stats.losses,
                 winRate: build.winRate,
-                avgKills: build.stats.avgKills,
-                avgDeaths: build.stats.avgDeaths,
-                avgAssists: build.stats.avgAssists,
-                avgDamageDealt: build.stats.avgDamageDealt,
-                avgDamageTaken: build.stats.avgDamageTaken,
-                pickRate: 0 // will calculate below
+                usageRate: build.usageRate,
+                avgKills: build.avgKills,
+                avgDeaths: build.avgDeaths,
+                avgAssists: build.avgAssists,
+                avgDamageDealt: build.avgDamageDealt,
+                avgDamageTaken: build.avgDamageTaken,
             });
         });
 
-        // Calculate pick rates and diversity metrics
+        // Calculate diversity metrics and flag outliers
         for (const char of Object.values(byCharacter)) {
-            // Calculate pick rates
             char.topBuilds.forEach(build => {
-                build.pickRate = Number(((build.uses / char.totalMatches) * 100).toFixed(2));
-
-                // Flag dominant builds (>40% pick rate)
-                if (build.pickRate > 40) {
-                    build.flaggged = true;
+                // Flag dominant builds (>40% usage rate)
+                if (build.usageRate > 40) {
+                    build.flagged = true;
                     build.flag = 'DOMINANT_BUILD';
-                    build.recommendation = `This build has ${build.pickRate}% pick rate - meta is stale`;
+                    build.recommendation = `This build has ${build.usageRate}% pick rate - meta is stale`;
                 }
 
                 // Flag overperforming builds (>60% win rate with significant sample)
