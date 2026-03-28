@@ -29,15 +29,15 @@ router.get('/', protect, getMatches);
 // @access  Public
 router.get('/recent', getRecentMatches);
 
-// @route   GET /api/matches/:id
-// @desc    Get match details by ID
-// @access  Public
-router.get('/:id', getMatchById);
-
 // @route   GET /api/matches/user/:userId
 // @desc    Get match history for a specific user
 // @access  Public
 router.get('/user/:userId', getUserMatchHistory);
+
+// @route   GET /api/matches/:id
+// @desc    Get match details by ID
+// @access  Public
+router.get('/:id', getMatchById);
 
 // @route   DELETE /api/matches/:id
 // @desc    Delete match (admin only - for fixing errors)

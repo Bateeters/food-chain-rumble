@@ -19,8 +19,8 @@ router.use('/leaderboard', leaderboardRoutes);  // /api/leaderboard/*
 router.use('/forum', forumRoutes);              // /api/forum/*
 router.use('/user', userStatsRoutes);           // /api/user/*
 
-// Heath check route
-router.get('/heath', (req, res) => {
+// Health check route
+router.get('/health', (req, res) => {
     res.json({
         status: 'OK',
         message: 'Food Chain Rumble API is running',

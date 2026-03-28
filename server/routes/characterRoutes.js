@@ -21,15 +21,15 @@ const { protect, isAdmin } = require('../middleware/auth');
 // @access  Public
 router.get('/', getAllCharacters);
 
+// @route   POST /api/characters
+// @desc    Create a new character (admin only)
+// @access  Private/Admin
+router.post('/', protect, isAdmin, createCharacter);
+
 // @route   GET /api/characters/:id
 // @desc    Get character details by ID
 // @access  Public
 router.get('/:id', getCharacterById);
-
-// @route   POST /api/characters
-// @desc    Create a new character (admin only)
-// @access  Private/Admin
-router.post('/:id', protect, isAdmin, createCharacter);
 
 // @route   PATCH /api/characters/:id
 // @desc    Update character (admin only)
