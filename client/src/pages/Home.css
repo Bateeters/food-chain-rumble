@@ -184,7 +184,6 @@
   position: absolute;
   inset: 0;
   background-image: var(--home-card-banner);
-  background-position: 20% 83%;
   background-size: cover;
   background-repeat: no-repeat;
   transform-origin: center;
@@ -192,8 +191,17 @@
   z-index: 0;
 }
 
+.shark-banner::before {
+  background-position: 20% 10%;
+}
+
 .porcupine-banner::before {
+  background-position: 20% 83%;
   transform: scaleX(-1);
+}
+
+.chameleon-banner::before {
+  background-position: 80% 30%;
 }
 
 .home-card-img::after {

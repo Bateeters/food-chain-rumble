@@ -68,7 +68,7 @@ const Home = () => {
             <Col lg={12}>
               <Row className="g-4">
                 <Col lg={9} md={12} className='m-auto py-5'>
-                  <div className="home-feature-card home-card-img" 
+                  <div className="home-feature-card home-card-img shark-banner" 
                   style={{ '--home-card-banner': `url(${process.env.PUBLIC_URL}/images/shark-banner.png)` }}>
                     <span className="feature-label">01</span>
                     <h3>Distinct Roster</h3>
@@ -86,8 +86,7 @@ const Home = () => {
                 <Col lg={9} md={12} className='m-auto py-5'>
                   <div
                     className="home-feature-card home-card-img porcupine-banner"
-                    style={{ '--home-card-banner': `url(${process.env.PUBLIC_URL}/images/porcupine-banner.png)` }}
-                  >
+                    style={{ '--home-card-banner': `url(${process.env.PUBLIC_URL}/images/porcupine-banner.png)` }}>
                     <span className="feature-label">02</span>
                     <h3>Ranked Modes</h3>
                     <p>
@@ -102,7 +101,8 @@ const Home = () => {
                   </div>
                 </Col>
                 <Col lg={9} md={12} className='m-auto py-5'>
-                  <div className="home-feature-card">
+                  <div className="home-feature-card home-card-img chameleon-banner"
+                    style={{ '--home-card-banner': `url(${process.env.PUBLIC_URL}/images/chameleon-banner.png)` }}>
                     <span className="feature-label">03</span>
                     <h3>Battle Intel</h3>
                     <p>Review recent matches, team output, and top performers with a cleaner post-game view.</p>
