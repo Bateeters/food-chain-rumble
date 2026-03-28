@@ -156,7 +156,7 @@ playerStatsSchema.index({ user: 1, character: 1, gameMode: 1}, { unique: true});
 // Virtual: Calculate win rate
 playerStatsSchema.virtual('winRate').get(function() {
     if (this.stats.totalMatches === 0) return 0;
-    return parseFload(((this.stats.win / this.stats.totalMatches) * 100).toFixed(2));
+    return parseFloat(((this.stats.win / this.stats.totalMatches) * 100).toFixed(2));
 });
 
 // Virtual: Calculate K/D ratio
@@ -164,7 +164,7 @@ playerStatsSchema.virtual('kdRatio').get(function() {
     if (this.stats.totalDeaths === 0) {
         return this.stats.totalKills; // If never died, return total kills
     }
-    return parseFload((this.stats.totalKills / this.stats.totalDeaths).toFixed(2)); 
+    return parseFloat((this.stats.totalKills / this.stats.totalDeaths).toFixed(2)); 
 });
 
 // Virtual: Average damage per match
