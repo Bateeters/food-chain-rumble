@@ -46,23 +46,23 @@ const buildStatsSchema = new mongoose.Schema({
             type: Number,
             default: 0
         },
-        avgKills: {
+        totalKills: {
             type: Number,
             default: 0
         },
-        avgDeaths: {
+        totalDeaths: {
             type: Number,
             default: 0
         },
-        avgDamageDealt: {
+        totalDamageDealt: {
             type: Number,
             default: 0
         },
-        avgAssists: {
+        totalAssists: {
             type: Number,
             default: 0
         },
-        avgDamageTaken: {
+        totalDamageTaken: {
             type: Number,
             default: 0
         }
@@ -87,27 +87,27 @@ buildStatsSchema.virtual('winRate').get(function() {
 // Virtual: Calculate actual averages (running average)
 buildStatsSchema.virtual('avgKills').get(function() {
     return this.stats.totalUses > 0
-        ? parseFloat((this.stats.avgKills / this.stats.totalUses).toFixed(2))
+        ? parseFloat((this.stats.totalKills / this.stats.totalUses).toFixed(2))
         : 0;
 });
 buildStatsSchema.virtual('avgDeaths').get(function() {
     return this.stats.totalUses > 0
-        ? parseFloat((this.stats.avgDeaths / this.stats.totalUses).toFixed(2))
+        ? parseFloat((this.stats.totalDeaths / this.stats.totalUses).toFixed(2))
         : 0;
 });
 buildStatsSchema.virtual('avgAssists').get(function() {
     return this.stats.totalUses > 0
-        ? parseFloat((this.stats.avgAssists / this.stats.totalUses).toFixed(2))
+        ? parseFloat((this.stats.totalAssists / this.stats.totalUses).toFixed(2))
         : 0;
 });
 buildStatsSchema.virtual('avgDamageDealt').get(function() {
     return this.stats.totalUses > 0
-        ? parseFloat((this.stats.avgDamageDealt / this.stats.totalUses).toFixed(2))
+        ? parseFloat((this.stats.totalDamageDealt / this.stats.totalUses).toFixed(2))
         : 0;
 });
 buildStatsSchema.virtual('avgDamageTaken').get(function() {
     return this.stats.totalUses > 0
-        ? parseFloat((this.stats.avgDamageTaken / this.stats.totalUses).toFixed(2))
+        ? parseFloat((this.stats.totalDamageTaken / this.stats.totalUses).toFixed(2))
         : 0;
 });
 

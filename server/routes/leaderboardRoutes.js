@@ -27,11 +27,6 @@ router.get('/characters/top', getTopCharacters);
 // @access  Public
 router.get('/overall', getOverallLeaderboard);
 
-// @route   GET /api/leaderboard/character/:characterId
-// @desc    Get character-specific leaderboard
-// @access  Public
-router.get('/character/:characterId', getCharacterSpecificLeaderboard);
-
 // @route   GET /api/leaderboards/balance/characters
 // @desc    Get DETAILED character balance data including talent usage
 // @access  Private/Admin
@@ -46,6 +41,11 @@ router.get('/balance/talents', protect, isAdmin, getTalentBalanceData);
 // @desc    Get build combination data (*which builds are dominating)
 // @access  Private/Admin
 router.get('/balance/builds', protect, isAdmin, getBuildBalanceData);
+
+// @route   GET /api/leaderboard/character/:characterId
+// @desc    Get character-specific leaderboard
+// @access  Public
+router.get('/character/:characterId', getCharacterSpecificLeaderboard);
 
 // @route   GET /api/leaderboard/:gameMode
 // @desc    Get player leaderboard for a specific game mode
