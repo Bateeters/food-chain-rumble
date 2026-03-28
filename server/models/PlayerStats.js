@@ -156,7 +156,7 @@ playerStatsSchema.index({ user: 1, character: 1, gameMode: 1}, { unique: true});
 // Virtual: Calculate win rate
 playerStatsSchema.virtual('winRate').get(function() {
     if (this.stats.totalMatches === 0) return 0;
-    return parseFloat(((this.stats.win / this.stats.totalMatches) * 100).toFixed(2));
+    return parseFloat(((this.stats.wins / this.stats.totalMatches) * 100).toFixed(2));
 });
 
 // Virtual: Calculate K/D ratio
