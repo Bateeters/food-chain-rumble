@@ -27,9 +27,26 @@ const getAllCharacters = async (req, res) => {
             case 'name':
                 sortOption = { name: 1 };
                 break;
-            case '-winRate':
-                sortOption = { 'globalStats.winRate': -1 };
-                break;
+            case '-winRate': {
+                const pipeline = [
+                    { $match: filter },
+                    {
+                        $addFields: {
+                            _winRate: {
+                                $cond: [
+                                    { $gt: [{ $add: ['$globalStats.totalWins', '$globalStats.totalLosses'] }, 0] },
+                                    { $divide: ['$globalStats.totalWins', { $add: ['$globalStats.totalWins', '$globalStats.totalLosses'] }] },
+                                    0
+                                ]
+                            }
+                        }
+                    },
+                    { $sort: { _winRate: -1 } },
+                    { $unset: '_winRate' }
+                ];
+                const characters = await Character.aggregate(pipeline);
+                return res.json({ characters, count: characters.length });
+            }
             case 'releaseDate':
                 sortOption = { releaseDate: 1 };
                 break;
@@ -236,10 +253,10 @@ const getCharacterStats = async (req, res) => {
                     _id: '$gameMode',
                     totalPicks: { $sum: '$stats.totalMatches' },
                     totalWins: { $sum: '$stats.wins' },
-                    totalLosses: { $sum: '$stats.Losses' },
-                    totalKills: { $sum: '$stats.kills' },
-                    totalDeaths: { $sum: '$stats.deaths' },
-                    totalAssists: { $sum: '$stats.assists' },
+                    totalLosses: { $sum: '$stats.losses' },
+                    totalKills: { $sum: '$stats.totalKills' },
+                    totalDeaths: { $sum: '$stats.totalDeaths' },
+                    totalAssists: { $sum: '$stats.totalAssists' },
                     totalDamageDealt: { $sum: '$stats.totalDamageDealt' },
                     totalDamageTaken: { $sum: '$stats.totalDamageTaken' }
                 }
@@ -448,11 +465,11 @@ const getCharacterLeaderboardRank = async (req, res) => {
             visibleRank: userStats.rank,
             stats: {
                 totalMatches: userStats.stats.totalMatches,
-                win: userStats.stats.wins,
+                wins: userStats.stats.wins,
                 losses: userStats.stats.losses,
                 winRate: userStats.winRate,
                 kdRatio: userStats.kdRatio,
-                totalAssists: userStats.totalAssists
+                totalAssists: userStats.stats.totalAssists
             }
         });
 
