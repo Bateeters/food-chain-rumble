@@ -50,7 +50,7 @@ const submitMatch = async (req, res) => {
 
         if (players.length !== expectedPlayerCount[gameMode]) {
             return res.status(400).json({
-                error: `${gameMode} requires ${expectedPlayerCount[gamemode]} players, got ${players.length}`
+                error: `${gameMode} requires ${expectedPlayerCount[gameMode]} players, got ${players.length}`
             });
         }
 
@@ -135,7 +135,7 @@ const submitMatch = async (req, res) => {
                 }
 
                 // Calculate average opponent Account MMR (matchmaking is based on this)
-                avgOpponentAccountMMR = calculateAverageOpponentMMR(opponentStats);
+                const avgOpponentAccountMMR = calculateAverageOpponentMMR(opponentStats);
 
                 // Calculate team average stats for performance bonus
                 const teamPlayers = match.players.filter(p => p.team === player.team);
@@ -189,7 +189,7 @@ const submitMatch = async (req, res) => {
 
                 // Update character MMR
                 playerStat.characterMMR += totalCharacterMmrChange;
-                playerStat.characterMMR += Math.max(0, playerStat.characterMMR);
+                playerStat.characterMMR = Math.max(0, playerStat.characterMMR);
 
                 // Update peak character MMR
                 if (playerStat.characterMMR > playerStat.peakCharacterMMR) {
@@ -259,7 +259,7 @@ const getMatches = async (req, res) => {
 
         // If not admin, only show user's own matches
         if (req.user.role !== 'admin') {
-            filter['players.User'] = req.user.id;
+            filter['players.user'] = req.user.id;
         }
 
         if (gameMode) {
@@ -379,7 +379,7 @@ const getUserMatchHistory = async (req, res) => {
         }
 
         if (character) {
-            filter['players.user.character'] = character;
+            filter['players.character'] = character;
         }
 
         const matches = await Match.find(filter)
@@ -409,8 +409,8 @@ const getUserMatchHistory = async (req, res) => {
             },
             matches,
             pagination: {
-                page: number(page),
-                limit: number(limit),
+                page: Number(page),
+                limit: Number(limit),
                 total,
                 pages: Math.ceil(total / limit)
             },
