@@ -148,7 +148,7 @@ const calculateTeamAverageStats = (teamPlayers) => {
 const calculateAverageOpponentMMR = (opponents) => {
     if (opponents.length === 0) return 1000; // Default
 
-    const totalMMR = opponents.reduce((sum, opp) => sum + (opp.mmr || 1000), 0);
+    const totalMMR = opponents.reduce((sum, opp) => sum + (opp.accountMMR || 1000), 0);
     return totalMMR / opponents.length;
 };
 
