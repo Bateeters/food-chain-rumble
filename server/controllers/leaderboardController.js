@@ -135,8 +135,6 @@ const getLeaderboard = async (req, res) => {
                     winRate: Number(entry.winRate.toFixed(2)),
                     kdRatio: Number(entry.kdRatio.toFixed(2)),
                     assistPerMatch: Number(entry.assistPerMatch.toFixed(2)),
-                    currentWinStreak: entry.currentWinStreak,
-                    longesetWinStreak: entry.longesetWinStreak
                 },
                 topCharacters: entry.topCharacters
             })),
@@ -405,8 +403,8 @@ const getPlayerRank = async (req, res) => {
             {
                 $group: {
                     _id: '$user',
-                    highestMMR: { $max: '$mmr' },
-                    peakMMR: { $max: '$peakMmr' },
+                    highestMMR: { $max: '$accountMMR' },
+                    peakMMR: { $max: '$peakAccountMMR' },
                     bestRank: { $first: '$rank' },
                     totalMatches: { $sum: '$stats.totalMatches' },
                     totalWins: { $sum: '$stats.wins' },
@@ -441,7 +439,7 @@ const getPlayerRank = async (req, res) => {
             { 
                 $group: {
                     _id: '$user',
-                    highestMMR: { $max: '$mmr' }
+                    highestMMR: { $max: '$accountMMR' }
                 }
             },
             {
@@ -488,7 +486,7 @@ const getPlayerRank = async (req, res) => {
                 losses: stats.totalLosses,
                 winRate: stats.totalMatches > 0 ? ((stats.totalWins / stats.totalMatches) * 100).toFixed(2): 0,
                 kdRatio: stats.totalDeaths > 0 ? (stats.totalKills / stats.totalDeaths).toFixed(2) : stats.totalKills,
-                assistsPerMach: stats.totalMatches > 0 ? (stats.totalAssists / stats.totalMatches).toFixed(2) : 0
+                assistsPerMatch: stats.totalMatches > 0 ? (stats.totalAssists / stats.totalMatches).toFixed(2) : 0
             },
             topCharacters: stats.topCharacters
         });
@@ -527,7 +525,7 @@ const getCharacterLeaderboard = async (req, res) => {
                     totalPicks: { $sum: '$stats.totalMatches' },
                     totalWins: { $sum: '$stats.wins' },
                     totalLosses: { $sum: '$stats.losses' },
-                    totalAssists: { $sum: '$stats.assists' }
+                    totalAssists: { $sum: '$stats.totalAssists' }
                 }
             },
             {
@@ -760,7 +758,7 @@ const getCharacterBalanceData = async (req, res) => {
                 recommendation = `Win rate ${winRate.toFixed(1)}% is below 45% baseline - consider buffs`;
             }
 
-            if (pickrate < 5) {
+            if (pickRate < 5) {
                 flags.push('LOW_PICK_RATE');
                 recommendation += recommendation ? ' | ' : '';
                 recommendation += `Pick rate ${pickRate.toFixed(1)}% is very low - may be underperforming`;
@@ -814,7 +812,7 @@ const getCharacterBalanceData = async (req, res) => {
 // @access  Private/Admin
 const getTalentBalanceData = async (req, res) => {
     try {
-        const { gameMode = '1v1_ranked' } = req.query;
+        const { gameMode = '1v1_ranked', character } = req.query;
 
         let filter = { gameMode };
         if (character) {
@@ -922,7 +920,7 @@ const getTalentBalanceData = async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Get talent balance data error');
+        console.error('Get talent balance data error:', error);
         res.status(500).json({
             error: 'Error fetching talent usage data',
             details: error.message
