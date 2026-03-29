@@ -46,7 +46,7 @@ const getAllUsers = async (req, res) => {
                     page: Number(page),
                     limit: Number(limit),
                     total,
-                    page: Math.ceil(total / limit)
+                    pages: Math.ceil(total / limit)
                 }
             });
 
@@ -192,11 +192,11 @@ const getUserStats = async (req, res) => {
         }
 
         // Get all player stats for this user
-        const PlayerStats = await PlayerStats.find({ user: userId })
+        const AccountPlayerStats = await PlayerStats.find({ user: userId })
             .populate('character', 'name image');
 
         // Calculate account-wide totals using aggregation
-        const accountStats = await PlayerStats.aggregate([
+        const accountStats = await AccountPlayerStats.aggregate([
             { $match: { user: mongoose.Types.ObjectId(userId) } },
             {
                 $group: {
@@ -207,7 +207,7 @@ const getUserStats = async (req, res) => {
                     totalKills: { $sum: '$stats.totalKills' },
                     totalDeaths: { $sum: '$stats.totalDeaths' },
                     totalAssists: { $sum: '$stats.totalAssists' },
-                    totalDamageDealt: { $sum: 'stats.totalDamageDealt' },
+                    totalDamageDealt: { $sum: '$stats.totalDamageDealt' },
                     totalDamageTaken: { $sum: '$stats.totalDamageTaken' }
                 }
             }
@@ -235,7 +235,7 @@ const getUserStats = async (req, res) => {
 
         // Group stats by game mode
         const statsByMode = {};
-        PlayerStats.forEach(stat => {
+        AccountPlayerStats.forEach(stat => {
             if (!statsByMode[stat.gameMode]) {
                 statsByMode[stat.gameMode] = {
                     gameMode: stat.gameMode,
@@ -583,7 +583,7 @@ const requestEmailChange = async (req, res) => {
 
         res.json({
             message: 'Verification email sent. Please check your new email address.',
-            verificationToken
+            // verificationToken --- In production, do not return the token in the response, only used for testing purposes
         });
 
     } catch (error) {
